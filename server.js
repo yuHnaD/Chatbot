@@ -11,6 +11,10 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(__dirname));
 
+// Danh sách các kết nối Realtime (SSE) đang mở từ trình duyệt Admin
+let adminClients = [];
+
+// Khởi tạo Database mặc định với toàn bộ tài liệu Lái Hộ chính thức
 const defaultData = {
   config: {
     botActive: true,
@@ -25,7 +29,7 @@ const defaultData = {
     botName: "Linh - Trợ lý Lái Hộ",
     pronoun: "Em - Anh/Chị",
     tone: "Thân thiện, nhiệt tình, chuyên nghiệp, khéo léo suy luận từ khóa viết tắt hoặc không dấu của khách",
-    fallback: "Dạ vấn đề này hiện nằm ngoài thông tin em đang nắm giữ. Em đã ghi nhận và chuyển câu hỏi này cho Quản trị viên bên em sẽ liên hệ giải đáp cho Anh/Chị sớm nhất nhé ạ!"
+    fallback: "Dạ vấn đề này hiện nằm ngoài thông tin em đang nắm giữ. Em đã ghi nhận và chuyển câu hỏi này cho Quản trị viên hỗ trợ giải đáp cho Anh/Chị sớm nhất nhé ạ!"
   },
   documents: [
     {
@@ -57,7 +61,7 @@ const defaultData = {
       updatedAt: "Hôm nay"
     }
   ],
-  conversations: {} // Lưu trữ hội thoại theo từng khách hàng (senderId)
+  conversations: {} // Lưu trữ hội thoại theo senderId của khách
 };
 
 function loadDB() {
@@ -71,7 +75,31 @@ function saveDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
 
-// APIs Quản trị
+// Hàm phát sóng sự kiện Realtime tới toàn bộ trình duyệt Admin đang mở
+function broadcastToAdmins(eventType, payload) {
+  adminClients.forEach(client => {
+    client.write(`data: ${JSON.stringify({ type: eventType, payload })}\n\n`);
+  });
+}
+
+// ==========================================
+// API REALTIME STREAM (SSE)
+// ==========================================
+app.get('/api/stream', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  adminClients.push(res);
+  req.on('close', () => {
+    adminClients = adminClients.filter(client => client !== res);
+  });
+});
+
+// ==========================================
+// API QUẢN TRỊ & LIVE CHAT
+// ==========================================
 app.get('/api/data', (req, res) => {
   res.json(loadDB());
 });
@@ -108,37 +136,57 @@ app.post('/api/documents', (req, res) => {
   res.json({ success: true, documents: db.documents });
 });
 
-// Quản trị viên gửi tin nhắn thủ công từ khung chat Admin
-app.post('/api/admin-send', async (req, res) => {
-  const { senderId, message } = req.body;
+// Quản trị viên gửi tin nhắn thủ công từ khung chat Admin ra Messenger thật
+app.post('/api/conversations/reply', async (req, res) => {
+  const { senderId, text } = req.body;
   const db = loadDB();
   try {
-    await sendFacebookMessage(senderId, message, db.config.pageAccessToken);
-    
-    if (!db.conversations[senderId]) db.conversations[senderId] = { messages: [] };
-    db.conversations[senderId].messages.push({
-      sender: 'admin',
-      text: message,
-      time: new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN')
-    });
+    await sendFacebookMessage(senderId, text, db.config.pageAccessToken);
+
+    if (!db.conversations[senderId]) {
+      db.conversations[senderId] = { senderId, userName: `Khách ${senderId.slice(-4)}`, messages: [], aiEnabled: true, needsAdmin: false };
+    }
+
+    const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN');
+    db.conversations[senderId].messages.push({ sender: 'admin', text, time: timeStr });
+    db.conversations[senderId].lastMessage = `Admin: ${text}`;
+    db.conversations[senderId].updatedAt = Date.now();
     saveDB(db);
-    res.json({ success: true, conversations: db.conversations });
+
+    broadcastToAdmins('CONVERSATION_UPDATED', { conversation: db.conversations[senderId] });
+    res.json({ success: true, conversation: db.conversations[senderId] });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
+// Cập nhật trạng thái bật/tắt AI hoặc đánh dấu đã xử lý cảnh báo
+app.post('/api/conversations/status', (req, res) => {
+  const { senderId, aiEnabled, needsAdmin, markRead } = req.body;
+  const db = loadDB();
+  if (db.conversations[senderId]) {
+    if (aiEnabled !== undefined) db.conversations[senderId].aiEnabled = aiEnabled;
+    if (needsAdmin !== undefined) db.conversations[senderId].needsAdmin = needsAdmin;
+    saveDB(db);
+    broadcastToAdmins('CONVERSATION_UPDATED', { conversation: db.conversations[senderId] });
+  }
+  res.json({ success: true });
+});
+
+// API Phòng Test Giả Lập trên Web
 app.post('/api/test-chat', async (req, res) => {
   try {
     const { message } = req.body;
-    const reply = await generateAIResponse(message);
-    res.json({ success: true, reply });
+    const aiResult = await generateAIResponse(message);
+    res.json({ success: true, reply: aiResult.reply, needsAdmin: aiResult.needsAdmin });
   } catch (error) {
-    res.status(500).json({ success: false, reply: "Lỗi AI: " + error.message });
+    res.status(500).json({ success: false, reply: "Lỗi AI: " + error.message, needsAdmin: false });
   }
 });
 
-// Xử lý AI thông minh, suy luận ngữ cảnh, tiếng viết tắt, không dấu
+// ==========================================
+// XỬ LÝ TRÍ TUỆ NHÂN TẠO THÔNG MINH
+// ==========================================
 async function generateAIResponse(userMessage) {
   const db = loadDB();
   const { config, persona, documents } = db;
@@ -151,12 +199,12 @@ Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: 
 QUY TẮC PHẢN HỒI THÔNG MINH:
 1. Khách hàng thường nhắn tin bằng tiếng Việt không dấu, viết tắt, hoặc diễn đạt bằng ngôn từ đời thường. Bạn phải CỐ GẮNG HẾT SỨC suy luận ngữ cảnh, quy đổi các từ không dấu/viết tắt (VD: "gia cuoc", "phi ship", "dk tai xe", "chiet khau", "đ/c", "hcm", "hn") về đúng nghĩa nghiệp vụ trong tài liệu để trả lời chuẩn xác.
 2. Chỉ sử dụng thông tin trong [TÀI LIỆU CÔNG TY] bên dưới để tư vấn. Không tự bịa đặt dữ liệu ngoài tài liệu.
-3. Nếu sau khi đã cố gắng suy luận ngữ cảnh mà vấn đề hoàn toàn không có trong tài liệu, hãy trả lời chính xác bằng câu dự phòng sau để chuyển cho quản trị viên: "${persona.fallback}"
+3. Nếu sau khi đã cố gắng suy luận ngữ cảnh mà vấn đề hoàn toàn KHÔNG CÓ TRONG TÀI LIỆU, bạn PHẢI trả lời nguyên văn câu dự phòng sau đây: "${persona.fallback}"
 
 [TÀI LIỆU CÔNG TY]:
 ${knowledgeText}`;
 
-  if (!config.aiApiKey) return "Chưa cấu hình API Key trên web quản trị!";
+  if (!config.aiApiKey) return { reply: "Chưa cấu hình API Key trên web quản trị!", needsAdmin: false };
 
   if (config.aiProvider === 'gemini') {
     const model = config.aiModel || 'gemini-2.5-flash';
@@ -170,7 +218,9 @@ ${knowledgeText}`;
       })
     });
     const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || persona.fallback;
+    const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || persona.fallback;
+    const needsAdmin = replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
+    return { reply: replyText, needsAdmin };
   } else {
     const model = config.aiModel || 'gpt-4o-mini';
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -183,14 +233,19 @@ ${knowledgeText}`;
       })
     });
     const data = await res.json();
-    return data.choices?.[0]?.message?.content || persona.fallback;
+    const replyText = data.choices?.[0]?.message?.content || persona.fallback;
+    const needsAdmin = replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
+    return { reply: replyText, needsAdmin };
   }
 }
 
-// Webhook Facebook
+// ==========================================
+// WEBHOOK FACEBOOK MESSENGER
+// ==========================================
 app.get('/webhook', (req, res) => {
   const db = loadDB();
   if (req.query['hub.mode'] === 'subscribe' && req.query['hub.verify_token'] === db.config.verifyToken) {
+    console.log('✅ WEBHOOK_VERIFIED: Facebook đã kết nối thành công!');
     res.status(200).send(req.query['hub.challenge']);
   } else {
     res.sendStatus(403);
@@ -209,33 +264,52 @@ app.post('/webhook', async (req, res) => {
       if (event?.message?.text && !event.message.is_echo) {
         const senderPsid = event.sender.id;
         const text = event.message.text;
+        const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN');
 
         if (!db.conversations[senderPsid]) {
-          db.conversations[senderPsid] = { messages: [] };
+          db.conversations[senderPsid] = {
+            senderId: senderPsid,
+            userName: `Khách ${senderPsid.slice(-4)}`,
+            messages: [],
+            aiEnabled: true,
+            needsAdmin: false
+          };
         }
 
-        // Lưu tin nhắn của khách vào hội thoại realtime
-        db.conversations[senderPsid].messages.push({
-          sender: 'customer',
-          text: text,
-          time: new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN')
+        const conv = db.conversations[senderPsid];
+        conv.messages.push({ sender: 'customer', text, time: timeStr });
+        conv.lastMessage = text;
+        conv.updatedAt = Date.now();
+
+        // Kiểm tra xem khách có đang bị tắt AI riêng hoặc hệ thống toàn trang không
+        if (conv.aiEnabled && db.config.botActive) {
+          try {
+            const aiResult = await generateAIResponse(text);
+            
+            // Gửi phản hồi ra Messenger thật của khách
+            await sendFacebookMessage(senderPsid, aiResult.reply, db.config.pageAccessToken);
+
+            conv.messages.push({ sender: 'ai', text: aiResult.reply, time: timeStr, needsAdmin: aiResult.needsAdmin });
+            conv.lastMessage = `AI: ${aiResult.reply}`;
+
+            if (aiResult.needsAdmin) {
+              conv.needsAdmin = true; // Bật cờ báo đỏ cho Admin
+            }
+          } catch (e) {
+            console.error("Lỗi gọi AI hoặc gửi tin nhắn FB:", e.message);
+          }
+        } else {
+          // Nếu AI đang tắt cho khách này, đánh dấu cần Admin
+          conv.needsAdmin = true;
+        }
+
+        saveDB(db);
+
+        // Phát sóng sự kiện Realtime tới giao diện Admin
+        broadcastToAdmins('NEW_CUSTOMER_MESSAGE', {
+          conversation: conv,
+          alertAdmin: conv.needsAdmin
         });
-
-        try {
-          const reply = await generateAIResponse(text);
-          await sendFacebookMessage(senderPsid, reply, db.config.pageAccessToken);
-
-          // Lưu phản hồi của AI vào hội thoại
-          db.conversations[senderPsid].messages.push({
-            sender: 'ai',
-            text: reply,
-            time: new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN')
-          });
-
-          saveDB(db);
-        } catch (e) {
-          console.error("Lỗi xử lý tin nhắn:", e.message);
-        }
       }
     }
   } else {
@@ -257,5 +331,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server đang chạy tại cổng ${PORT}`);
 });

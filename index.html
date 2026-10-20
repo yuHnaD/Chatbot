@@ -3,185 +3,320 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lái Hộ AI Hub - Quản Trị Chatbot Thời Gian Thực</title>
+  <title>Lái Hộ AI Hub - Quản Trị & Live Chat Realtime</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col md:flex-row font-sans">
+<body class="bg-slate-900 text-slate-100 h-screen flex flex-col md:flex-row font-sans overflow-hidden">
 
   <!-- SIDEBAR -->
-  <aside class="w-full md:w-72 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-5">
+  <aside class="w-full md:w-72 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-5 shrink-0">
     <div>
-      <div class="flex items-center gap-3 mb-8">
+      <div class="flex items-center gap-3 mb-6">
         <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-xl font-bold shadow-lg shadow-blue-600/30">
           <i class="fa-brands fa-facebook-messenger"></i>
         </div>
         <div>
           <h1 class="font-bold text-lg leading-tight">Lái Hộ AI Hub</h1>
-          <p class="text-xs text-slate-400">Hệ thống Quản Trị 24/7</p>
+          <p class="text-xs text-emerald-400 flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Realtime Live Chat
+          </p>
         </div>
       </div>
 
-      <!-- Trạng thái Bot -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-6">
+      <!-- Trạng thái Bot toàn cục -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-5">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Trạng thái trực Page</span>
+          <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">AI Tự Động Toàn Trang</span>
           <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="botActiveToggle" class="sr-only peer" onchange="saveConnectionConfig()">
             <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
           </label>
         </div>
         <div id="botStatusBadge" class="text-sm font-medium text-emerald-400 flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span> Đang tự động trả lời
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span> Đang trực 24/7
         </div>
       </div>
 
       <!-- Menu điều hướng -->
-      <nav class="space-y-2">
-        <button onclick="switchTab('tab-connect')" id="btn-tab-connect" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium bg-blue-600 text-white">
-          <i class="fa-solid fa-plug w-5"></i> 1. Kết nối FB & API Key
+      <nav class="space-y-1.5">
+        <button onclick="switchTab('tab-inbox')" id="btn-tab-inbox" class="tab-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-left text-sm font-medium bg-blue-600 text-white">
+          <span class="flex items-center gap-3"><i class="fa-solid fa-inbox w-5"></i> 1. Hộp Thư Live Chat</span>
+          <span id="sidebarAlertBadge" class="hidden bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-bounce">0</span>
         </button>
         <button onclick="switchTab('tab-knowledge')" id="btn-tab-knowledge" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800">
-          <i class="fa-solid fa-book-open w-5"></i> 2. Kho Tài Liệu Lái Hộ
+          <i class="fa-solid fa-book-open w-5"></i> 2. Kho Tài Liệu Laiho
         </button>
         <button onclick="switchTab('tab-persona')" id="btn-tab-persona" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800">
-          <i class="fa-solid fa-user-astronaut w-5"></i> 3. Nhân Cách & Ngữ Cảnh
+          <i class="fa-solid fa-user-astronaut w-5"></i> 3. Nhân Cách & Giọng Điệu
         </button>
-        <button onclick="switchTab('tab-chat')" id="btn-tab-chat" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800 relative">
-          <i class="fa-solid fa-comments w-5"></i> 4. Khung Chat Khách Thật <span id="badgeUnread" class="hidden absolute right-3 bg-rose-500 text-xs px-2 py-0.5 rounded-full font-bold">New</span>
+        <button onclick="switchTab('tab-connect')" id="btn-tab-connect" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800">
+          <i class="fa-solid fa-plug w-5"></i> 4. Kết nối FB & API Key
+        </button>
+        <button onclick="switchTab('tab-test')" id="btn-tab-test" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800">
+          <i class="fa-solid fa-flask w-5"></i> 5. Phòng Test Giả Lập
         </button>
       </nav>
     </div>
-    <div class="mt-8 pt-4 border-t border-slate-800 text-xs text-slate-500">
-      Đồng bộ thời gian thực Realtime.
+
+    <div class="pt-4 border-t border-slate-800 text-xs text-slate-400 space-y-1">
+      <div>🔔 Khi AI không trả lời được, hệ thống sẽ báo đỏ và kêu chuông để Admin vào chat.</div>
     </div>
   </aside>
 
   <!-- MAIN CONTENT -->
-  <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+  <main class="flex-1 flex flex-col overflow-hidden relative">
     
+    <!-- Toast thông báo -->
     <div id="toast" class="fixed top-5 right-5 hidden bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl font-medium text-sm z-50 flex items-center gap-2">
-      <i class="fa-solid fa-circle-check"></i> <span id="toastMsg">Đã lưu!</span>
+      <i class="fa-solid fa-circle-check"></i> <span id="toastMsg">Đã lưu thành công!</span>
     </div>
 
-    <!-- TAB 1: KẾT NỐI -->
-    <section id="tab-connect" class="tab-section max-w-4xl space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold">1. Cấu hình Kết nối Facebook & AI API Key</h2>
-        <p class="text-slate-400 text-sm mt-1">Điền thông tin Webhook và Token Fanpage Lái Hộ.</p>
-      </div>
-      <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-4">
-        <h3 class="font-semibold text-blue-400 flex items-center gap-2"><i class="fa-solid fa-link"></i> Webhook URL</h3>
-        <div class="flex">
-          <input type="text" id="webhookUrlDisplay" readonly class="w-full bg-slate-900 border border-slate-700 rounded-l-xl px-3 py-2.5 text-sm text-emerald-400 font-mono" />
-          <button onclick="copyWebhookUrl()" class="bg-slate-700 hover:bg-slate-600 px-4 rounded-r-xl text-sm font-medium">Copy</button>
-        </div>
-      </div>
-      <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-5">
-        <h3 class="font-semibold text-amber-400 flex items-center gap-2"><i class="fa-solid fa-key"></i> Token & API Key</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="text-sm font-medium block mb-1">Tên Fanpage</label>
-            <input type="text" id="pageName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
+    <!-- ========================================================= -->
+    <!-- TAB 1: HỘP THƯ LIVE CHAT REALTIME (GIỐNG MESSENGER)        -->
+    <!-- ========================================================= -->
+    <section id="tab-inbox" class="tab-section flex-1 flex h-full overflow-hidden">
+      
+      <!-- Cột trái: Danh sách cuộc trò chuyện -->
+      <div class="w-80 md:w-96 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0">
+        <div class="p-4 border-b border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="font-bold text-lg">Hộp thư Fanpage</h2>
+            <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              ● Realtime
+            </span>
           </div>
-          <div>
-            <label class="text-sm font-medium block mb-1">Verify Token</label>
-            <input type="text" id="verifyToken" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" />
-          </div>
-        </div>
-        <div>
-          <label class="text-sm font-medium block mb-1">Page Access Token <span class="text-rose-400">*</span></label>
-          <input type="password" id="pageAccessToken" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" placeholder="EAA..." />
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="md:col-span-2">
-            <label class="text-sm font-medium block mb-1">Gemini / OpenAI API Key <span class="text-rose-400">*</span></label>
-            <input type="password" id="aiApiKey" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" placeholder="AIzaSy..." />
-          </div>
-          <div>
-            <label class="text-sm font-medium block mb-1">Model</label>
-            <input type="text" id="aiModel" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" />
+          <!-- Bộ lọc Tất cả / Cần Admin hỗ trợ -->
+          <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-medium">
+            <button onclick="setInboxFilter('all')" id="filter-all" class="py-1.5 rounded-lg bg-blue-600 text-white">
+              Tất cả hội thoại
+            </button>
+            <button onclick="setInboxFilter('needsAdmin')" id="filter-needsAdmin" class="py-1.5 rounded-lg text-slate-400 hover:text-white flex items-center justify-center gap-1">
+              <span>⚠️ Cần hỗ trợ</span>
+              <span id="filterAlertCount" class="bg-rose-500 text-white px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+            </button>
           </div>
         </div>
-        <button onclick="saveConnectionConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
-          <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình
-        </button>
-      </div>
-    </section>
 
-    <!-- TAB 2: KHO TÀI LIỆU -->
-    <section id="tab-knowledge" class="tab-section hidden max-w-5xl space-y-6">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 class="text-2xl font-bold">2. Kho Tài Liệu Lái Hộ</h2>
-          <p class="text-slate-400 text-sm mt-1">Cập nhật bảng giá, chiết khấu và quy định.</p>
-        </div>
-        <button onclick="openDocModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2">
-          <i class="fa-solid fa-plus"></i> Viết tài liệu mới
-        </button>
+        <!-- Danh sách khách hàng -->
+        <div id="conversationList" class="flex-1 overflow-y-auto divide-y divide-slate-800/60"></div>
       </div>
-      <div id="documentsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-    </section>
 
-    <!-- TAB 3: NHÂN CÁCH -->
-    <section id="tab-persona" class="tab-section hidden max-w-3xl space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold">3. Nhân Cách & Xử lý Fallback</h2>
-      </div>
-      <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="text-sm font-medium block mb-1">Tên AI</label>
-            <input type="text" id="botName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
-          </div>
-          <div>
-            <label class="text-sm font-medium block mb-1">Xưng hô</label>
-            <input type="text" id="pronoun" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
-          </div>
-        </div>
-        <div>
-          <label class="text-sm font-medium block mb-1">Phong cách tư vấn</label>
-          <input type="text" id="tone" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
-        </div>
-        <div>
-          <label class="text-sm font-medium block mb-1">Lời nhắn khi ngoài tài liệu (Chuyển Quản trị viên)</label>
-          <textarea id="fallback" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm"></textarea>
-        </div>
-        <button onclick="savePersonaConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
-          <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình
-        </button>
-      </div>
-    </section>
-
-    <!-- TAB 4: KHUNG CHAT MESSENGER REALTIME CHO ADMIN -->
-    <section id="tab-chat" class="tab-section hidden max-w-6xl">
-      <div class="bg-slate-800/70 border border-slate-700 rounded-2xl grid grid-cols-1 md:grid-cols-3 h-[650px] overflow-hidden shadow-2xl">
+      <!-- Cột phải: Khung chat chi tiết với khách hàng -->
+      <div class="flex-1 flex flex-col bg-slate-950 h-full">
         
-        <!-- Cột trái: Danh sách khách hàng nhắn tin -->
-        <div class="border-r border-slate-700 flex flex-col bg-slate-900/60">
-          <div class="p-4 border-b border-slate-700 flex justify-between items-center">
-            <h3 class="font-bold text-sm">Hộp thư Khách Hàng</h3>
-            <button onclick="loadRealtimeData()" class="text-xs bg-slate-700 hover:bg-slate-600 px-2.5 py-1 rounded-lg"><i class="fa-solid fa-rotate"></i> Làm mới</button>
+        <!-- Trạng thái chưa chọn khách nào -->
+        <div id="emptyChatState" class="flex-1 flex flex-col items-center justify-center text-slate-500 p-8 text-center">
+          <div class="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-2xl mb-3 text-blue-400">
+            <i class="fa-brands fa-facebook-messenger"></i>
           </div>
-          <div id="customerList" class="flex-1 overflow-y-auto divide-y divide-slate-800"></div>
+          <p class="font-medium text-slate-300">Chọn một cuộc hội thoại bên trái để xem hoặc trả lời khách</p>
+          <p class="text-xs max-w-md mt-1">Mọi tin nhắn của khách trên Fanpage Lái Hộ và câu trả lời của AI đều hiển thị trực tiếp theo thời gian thực tại đây.</p>
         </div>
 
-        <!-- Cột phải: Khung chat chi tiết kiểu Messenger -->
-        <div class="md:col-span-2 flex flex-col bg-slate-900/30">
-          <div id="chatHeader" class="p-4 border-b border-slate-700 flex items-center justify-between bg-slate-900/80">
-            <span class="text-sm text-slate-400 font-medium">Chọn một khách hàng bên trái để xem hội thoại</span>
-          </div>
+        <!-- Khung hội thoại đang mở -->
+        <div id="activeChatPanel" class="hidden flex-1 flex flex-col h-full">
           
-          <div id="messengerBox" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm flex flex-col">
-            <div class="m-auto text-center text-slate-500">Chưa chọn cuộc hội thoại nào</div>
+          <!-- Header cuộc trò chuyện -->
+          <div class="px-6 py-3.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div id="activeUserAvatar" class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm">KH</div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 id="activeUserName" class="font-bold text-base">Tên khách hàng</h3>
+                  <span id="activeNeedsAdminBadge" class="hidden text-xs bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2.5 py-0.5 rounded-full font-semibold animate-pulse">
+                    ⚠️ AI không trả lời được - Cần Admin hỗ trợ
+                  </span>
+                </div>
+                <p id="activeUserId" class="text-xs text-slate-400 font-mono">PSID: ...</p>
+              </div>
+            </div>
+
+            <!-- Nút điều khiển AI cho riêng khách này -->
+            <div class="flex items-center gap-3">
+              <button id="btnResolveAlert" onclick="resolveAdminAlert()" class="hidden text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl font-medium">
+                <i class="fa-solid fa-check mr-1"></i> Đã hỗ trợ xong (Bật lại AI)
+              </button>
+
+              <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl">
+                <span class="text-xs text-slate-300">AI tự trả lời khách này:</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="userAiToggle" class="sr-only peer" onchange="toggleUserAI()">
+                  <div class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+            </div>
           </div>
 
-          <div id="chatInputArea" class="p-3 border-t border-slate-700 bg-slate-900/80 hidden flex gap-2">
-            <input type="text" id="adminReplyInput" onkeypress="if(event.key==='Enter') sendAdminMessage()" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="Nhập tin nhắn tư vấn từ Quản trị viên..." />
-            <button onclick="sendAdminMessage()" class="bg-blue-600 hover:bg-blue-500 px-5 rounded-xl font-semibold text-sm">Gửi</button>
+          <!-- Danh sách bong bóng tin nhắn -->
+          <div id="activeMessageList" class="flex-1 p-6 overflow-y-auto space-y-4"></div>
+
+          <!-- Ô nhập tin nhắn dành cho Admin -->
+          <div class="p-4 bg-slate-900 border-t border-slate-800">
+            <div class="flex gap-3">
+              <input
+                type="text"
+                id="adminReplyInput"
+                onkeypress="if(event.key==='Enter') sendAdminReply()"
+                class="flex-1 bg-slate-950 border border-slate-700 focus:border-blue-500 focus:outline-none rounded-xl px-4 py-3 text-sm"
+                placeholder="Nhập tin nhắn trả lời trực tiếp khách hàng trên Messenger (Khi bạn nhắn sẽ gửi thẳng về FB của khách)..."
+              />
+              <button onclick="sendAdminReply()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-xl font-semibold text-sm flex items-center gap-2 shrink-0">
+                <i class="fa-solid fa-paper-plane"></i> Gửi cho khách
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- TAB 2: KHO TÀI LIỆU LÁI HỘ                                 -->
+    <!-- ========================================================= -->
+    <section id="tab-knowledge" class="tab-section hidden flex-1 p-6 md:p-10 overflow-y-auto">
+      <div class="max-w-5xl space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold">2. Kho Tài Liệu Lái Hộ (Huấn luyện AI)</h2>
+            <p class="text-slate-400 text-sm mt-1">Chỉnh sửa hoặc bổ sung bảng giá, chính sách tài xế ngay trên web.</p>
+          </div>
+          <div class="flex gap-3">
+            <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2">
+              <i class="fa-solid fa-file-arrow-up text-blue-400"></i> Tải file (.txt)
+              <input type="file" id="fileUploadInput" accept=".txt,.csv,.md" class="hidden" onchange="handleFileUpload(event)" />
+            </label>
+            <button onclick="openDocModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2">
+              <i class="fa-solid fa-plus"></i> Viết tài liệu mới
+            </button>
+          </div>
+        </div>
+        <div id="documentsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- TAB 3: NHÂN CÁCH AI                                        -->
+    <!-- ========================================================= -->
+    <section id="tab-persona" class="tab-section hidden flex-1 p-6 md:p-10 overflow-y-auto">
+      <div class="max-w-3xl space-y-6">
+        <h2 class="text-2xl font-bold">3. Thiết lập Nhân cách & Câu báo bận chuyển Admin</h2>
+        <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-medium block mb-1">Tên nhân viên AI</label>
+              <input type="text" id="botName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
+            </div>
+            <div>
+              <label class="text-sm font-medium block mb-1">Cách xưng hô</label>
+              <select id="pronoun" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm">
+                <option value="Em - Anh/Chị">Em - Anh/Chị</option>
+                <option value="Mình - Bạn">Mình - Bạn</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="text-sm font-medium block mb-1">Phong cách giao tiếp</label>
+            <input type="text" id="tone" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
+          </div>
+          <div>
+            <label class="text-sm font-medium block mb-1">Câu trả lời tự động khi AI không biết (Đồng thời hệ thống sẽ báo đỏ cho Admin)</label>
+            <textarea id="fallback" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm"></textarea>
+          </div>
+          <button onclick="savePersonaConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Nhân Cách AI
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- TAB 4: KẾT NỐI FACEBOOK & API KEY                          -->
+    <!-- ========================================================= -->
+    <section id="tab-connect" class="tab-section hidden flex-1 p-6 md:p-10 overflow-y-auto">
+      <div class="max-w-4xl space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold">4. Cấu hình Kết nối Facebook & AI API Key</h2>
+          <p class="text-slate-400 text-sm mt-1">Điền mã Token từ Meta for Developers để bot trực Fanpage Lái Hộ.</p>
+        </div>
+
+        <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-4">
+          <h3 class="font-semibold text-blue-400 flex items-center gap-2">
+            <i class="fa-solid fa-link"></i> Thông tin gắn vào Webhook trên Meta for Developers
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">Callback URL (Webhook)</label>
+              <div class="flex">
+                <input type="text" id="webhookUrlDisplay" readonly class="w-full bg-slate-900 border border-slate-700 rounded-l-xl px-3 py-2.5 text-sm text-emerald-400 font-mono" />
+                <button onclick="copyWebhookUrl()" class="bg-slate-700 hover:bg-slate-600 px-4 rounded-r-xl text-sm font-medium">Copy</button>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">Verify Token</label>
+              <input type="text" id="verifyToken" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm font-mono" />
+            </div>
           </div>
         </div>
 
+        <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-medium block mb-1">Tên Fanpage</label>
+              <input type="text" id="pageName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
+            </div>
+            <div>
+              <label class="text-sm font-medium block mb-1">Nền tảng AI</label>
+              <select id="aiProvider" onchange="updateDefaultModel()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm">
+                <option value="gemini">Google Gemini (Khuyên dùng)</option>
+                <option value="openai">OpenAI (ChatGPT)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-sm font-medium block mb-1">Facebook Page Access Token <span class="text-rose-400">*</span></label>
+            <input type="password" id="pageAccessToken" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" placeholder="EAA..." />
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2">
+              <label class="text-sm font-medium block mb-1">AI API Key <span class="text-rose-400">*</span></label>
+              <input type="password" id="aiApiKey" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" placeholder="AIzaSy..." />
+            </div>
+            <div>
+              <label class="text-sm font-medium block mb-1">Tên Model AI</label>
+              <input type="text" id="aiModel" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" />
+            </div>
+          </div>
+
+          <button onclick="saveConnectionConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình Kết Nối
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- TAB 5: PHÒNG TEST GIẢ LẬP                                  -->
+    <!-- ========================================================= -->
+    <section id="tab-test" class="tab-section hidden flex-1 p-6 md:p-10 overflow-y-auto">
+      <div class="max-w-2xl mx-auto bg-slate-800/70 border border-slate-700 rounded-2xl flex flex-col h-[560px]">
+        <div class="p-4 border-b border-slate-700 flex items-center justify-between">
+          <div>
+            <h3 class="font-semibold text-sm">Giả lập Khách hàng nhắn tin</h3>
+            <p class="text-xs text-slate-400">Thử hỏi 1 câu ngoài tài liệu để xem hệ thống báo động đỏ bên tab "1. Hộp Thư Live Chat"</p>
+          </div>
+        </div>
+        <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm">
+          <div class="bg-slate-700/70 text-slate-200 p-3 rounded-2xl rounded-tl-none max-w-[85%]">
+            Xin chào! Hãy hỏi thử về giá cước Lái Hộ, hoặc thử hỏi một câu không có trong tài liệu (VD: "Hôm nay thời tiết thế nào?") để kiểm tra tính năng gọi Admin nhé!
+          </div>
+        </div>
+        <div class="p-3 border-t border-slate-700 flex gap-2">
+          <input type="text" id="testChatInput" onkeypress="if(event.key==='Enter') sendTestMessage()" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="Đóng vai khách hàng nhắn tin..." />
+          <button onclick="sendTestMessage()" class="bg-blue-600 hover:bg-blue-500 px-5 rounded-xl font-medium text-sm">Gửi</button>
+        </div>
       </div>
     </section>
 
@@ -190,10 +325,16 @@
   <!-- MODAL TÀI LIỆU -->
   <div id="docModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-xl w-full p-6 space-y-4">
-      <h3 id="modalTitle" class="text-lg font-bold">Thêm tài liệu</h3>
+      <h3 id="modalTitle" class="text-lg font-bold">Thêm tài liệu huấn luyện</h3>
       <input type="hidden" id="editDocId" />
-      <div><label class="text-xs text-slate-400 block mb-1">Tiêu đề</label><input type="text" id="docTitleInput" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" /></div>
-      <div><label class="text-xs text-slate-400 block mb-1">Nội dung</label><textarea id="docContentInput" rows="7" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm"></textarea></div>
+      <div>
+        <label class="text-xs text-slate-400 block mb-1">Tiêu đề</label>
+        <input type="text" id="docTitleInput" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 block mb-1">Nội dung chi tiết</label>
+        <textarea id="docContentInput" rows="7" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm"></textarea>
+      </div>
       <div class="flex justify-end gap-3 pt-2">
         <button onclick="closeDocModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm">Hủy</button>
         <button onclick="saveDocument()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-semibold">Lưu</button>
@@ -202,42 +343,280 @@
   </div>
 
   <script>
-    let appData = {};
-    let activeCustomerPSID = null;
+    let appData = { conversations: {}, documents: [], config: {}, persona: {} };
+    let selectedSenderId = null;
+    let currentFilter = 'all';
+
     document.getElementById('webhookUrlDisplay').value = window.location.origin + '/webhook';
 
-    function showToast(msg) {
+    // Phát âm thanh chuông báo khi có khách cần Admin hỗ trợ
+    function playNotificationSound(isUrgent = false) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = isUrgent ? 880 : 587.33;
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        osc.start();
+        osc.stop(ctx.currentTime + (isUrgent ? 0.35 : 0.15));
+      } catch (e) {}
+    }
+
+    function showToast(msg, isAlert = false) {
       const toast = document.getElementById('toast');
+      toast.className = `fixed top-5 right-5 ${isAlert ? 'bg-rose-600' : 'bg-emerald-600'} text-white px-5 py-3 rounded-xl shadow-xl font-medium text-sm z-50 flex items-center gap-2`;
       document.getElementById('toastMsg').innerText = msg;
       toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 3000);
+      setTimeout(() => toast.classList.add('hidden'), 4000);
     }
 
     function switchTab(tabId) {
       document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
       document.getElementById(tabId).classList.remove('hidden');
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800");
-      document.getElementById('btn-' + tabId).className = "tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium bg-blue-600 text-white";
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('text-slate-300', 'hover:bg-slate-800');
+      });
+      const activeBtn = document.getElementById('btn-' + tabId);
+      activeBtn.classList.add('bg-blue-600', 'text-white');
+      activeBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
     }
 
-    async function loadRealtimeData() {
+    // ==========================================
+    // KẾT NỐI REALTIME STREAM VỚI SERVER
+    // ==========================================
+    function connectRealtimeStream() {
+      const evtSource = new EventSource('/api/stream');
+      evtSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        if (data.type === 'NEW_CUSTOMER_MESSAGE' || data.type === 'CONVERSATION_UPDATED') {
+          const conv = data.payload.conversation;
+          appData.conversations[conv.senderId] = conv;
+          renderConversationList();
+
+          if (selectedSenderId === conv.senderId) {
+            renderActiveChat(conv);
+          }
+
+          if (data.payload.alertAdmin) {
+            playNotificationSound(true);
+            showToast(`⚠️ Khách "${conv.userName}" hỏi ngoài tài liệu, cần Admin trả lời!`, true);
+          } else if (data.type === 'NEW_CUSTOMER_MESSAGE') {
+            playNotificationSound(false);
+          }
+        }
+      };
+    }
+
+    // ==========================================
+    // QUẢN LÝ HỘP THƯ LIVE CHAT (INBOX)
+    // ==========================================
+    function setInboxFilter(filter) {
+      currentFilter = filter;
+      document.getElementById('filter-all').className = filter === 'all'
+        ? "py-1.5 rounded-lg bg-blue-600 text-white"
+        : "py-1.5 rounded-lg text-slate-400 hover:text-white";
+      document.getElementById('filter-needsAdmin').className = filter === 'needsAdmin'
+        ? "py-1.5 rounded-lg bg-rose-600 text-white flex items-center justify-center gap-1"
+        : "py-1.5 rounded-lg text-slate-400 hover:text-white flex items-center justify-center gap-1";
+      renderConversationList();
+    }
+
+    function renderConversationList() {
+      const listEl = document.getElementById('conversationList');
+      const convArray = Object.values(appData.conversations || {}).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+
+      // Đếm số lượng cuộc trò chuyện cần Admin hỗ trợ
+      const alertCount = convArray.filter(c => c.needsAdmin).length;
+      const sidebarBadge = document.getElementById('sidebarAlertBadge');
+      const filterAlertCount = document.getElementById('filterAlertCount');
+      filterAlertCount.innerText = alertCount;
+
+      if (alertCount > 0) {
+        sidebarBadge.innerText = alertCount;
+        sidebarBadge.classList.remove('hidden');
+      } else {
+        sidebarBadge.classList.add('hidden');
+      }
+
+      const filtered = currentFilter === 'needsAdmin' ? convArray.filter(c => c.needsAdmin) : convArray;
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<div class="p-8 text-center text-slate-500 text-sm">Chưa có cuộc hội thoại nào.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(conv => {
+        const isSelected = conv.senderId === selectedSenderId;
+        const initials = (conv.userName || 'KH').slice(0, 2).toUpperCase();
+        return `
+          <div onclick="selectConversation('${conv.senderId}')" class="p-3.5 cursor-pointer transition flex items-start gap-3 ${isSelected ? 'bg-slate-800' : 'hover:bg-slate-900/60'} ${conv.needsAdmin ? 'border-l-4 border-rose-500 bg-rose-950/20' : ''}">
+            <div class="w-11 h-11 rounded-full bg-blue-600/30 border border-blue-500/30 flex items-center justify-center font-bold text-blue-300 shrink-0">
+              ${initials}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-1">
+                <h4 class="font-semibold text-sm truncate">${conv.userName}</h4>
+                ${conv.needsAdmin
+                  ? `<span class="text-[10px] bg-rose-500 text-white px-2 py-0.5 rounded-full font-bold shrink-0">Cần Admin</span>`
+                  : `<span class="text-[10px] ${conv.aiEnabled ? 'text-emerald-400' : 'text-amber-400'} shrink-0">${conv.aiEnabled ? '🤖 AI bật' : '👤 Tắt AI'}</span>`
+                }
+              </div>
+              <p class="text-xs text-slate-400 truncate mt-1">${conv.lastMessage || ''}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function selectConversation(senderId) {
+      selectedSenderId = senderId;
+      const conv = appData.conversations[senderId];
+      if (!conv) return;
+
+      document.getElementById('emptyChatState').classList.add('hidden');
+      document.getElementById('activeChatPanel').classList.remove('hidden');
+
+      renderConversationList();
+      renderActiveChat(conv);
+
+      // Đánh dấu đã đọc
+      await fetch('/api/conversations/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderId, markRead: true })
+      });
+    }
+
+    function renderActiveChat(conv) {
+      document.getElementById('activeUserName').innerText = conv.userName;
+      document.getElementById('activeUserId').innerText = `ID: ${conv.senderId}`;
+      document.getElementById('activeUserAvatar').innerText = (conv.userName || 'KH').slice(0, 2).toUpperCase();
+      document.getElementById('userAiToggle').checked = !!conv.aiEnabled;
+
+      const needsAdminBadge = document.getElementById('activeNeedsAdminBadge');
+      const btnResolve = document.getElementById('btnResolveAlert');
+      if (conv.needsAdmin) {
+        needsAdminBadge.classList.remove('hidden');
+        btnResolve.classList.remove('hidden');
+      } else {
+        needsAdminBadge.classList.add('hidden');
+        btnResolve.classList.add('hidden');
+      }
+
+      const msgContainer = document.getElementById('activeMessageList');
+      msgContainer.innerHTML = (conv.messages || []).map(m => {
+        if (m.sender === 'customer') {
+          return `
+            <div class="flex flex-col items-start">
+              <span class="text-[11px] text-slate-400 mb-1 ml-1">${conv.userName} • ${m.time}</span>
+              <div class="bg-slate-800 border border-slate-700 text-slate-100 px-4 py-2.5 rounded-2xl rounded-tl-none max-w-[75%] text-sm whitespace-pre-line">${m.text}</div>
+            </div>
+          `;
+        } else if (m.sender === 'ai') {
+          return `
+            <div class="flex flex-col items-end">
+              <span class="text-[11px] text-emerald-400 mb-1 mr-1"><i class="fa-solid fa-robot"></i> AI trả lời • ${m.time}</span>
+              <div class="bg-emerald-950/60 border ${m.needsAdmin ? 'border-rose-500' : 'border-emerald-700/50'} text-slate-100 px-4 py-2.5 rounded-2xl rounded-tr-none max-w-[75%] text-sm whitespace-pre-line">${m.text}</div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="flex flex-col items-end">
+              <span class="text-[11px] text-blue-400 mb-1 mr-1"><i class="fa-solid fa-user-shield"></i> Quản trị viên • ${m.time}</span>
+              <div class="bg-blue-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-none max-w-[75%] text-sm whitespace-pre-line shadow">${m.text}</div>
+            </div>
+          `;
+        }
+      }).join('');
+
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+
+    async function sendAdminReply() {
+      if (!selectedSenderId) return;
+      const input = document.getElementById('adminReplyInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+
+      const res = await fetch('/api/conversations/reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderId: selectedSenderId, text })
+      });
+      const data = await res.json();
+      if (data.success) {
+        appData.conversations[selectedSenderId] = data.conversation;
+        renderActiveChat(data.conversation);
+        renderConversationList();
+        showToast("Đã gửi tin nhắn cho khách hàng!");
+      } else {
+        alert("Lỗi gửi tin nhắn: " + data.error);
+      }
+    }
+
+    async function toggleUserAI() {
+      if (!selectedSenderId) return;
+      const aiEnabled = document.getElementById('userAiToggle').checked;
+      await fetch('/api/conversations/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderId: selectedSenderId, aiEnabled, needsAdmin: false })
+      });
+      showToast(aiEnabled ? "Đã bật lại AI tự động cho khách này" : "Đã tạm dừng AI cho khách này");
+    }
+
+    async function resolveAdminAlert() {
+      if (!selectedSenderId) return;
+      await fetch('/api/conversations/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderId: selectedSenderId, aiEnabled: true, needsAdmin: false })
+      });
+      showToast("Đã đánh dấu hoàn tất hỗ trợ & Bật lại AI!");
+    }
+
+    // ==========================================
+    // CÁC HÀM CẤU HÌNH & TÀI LIỆU
+    // ==========================================
+    function updateDefaultModel() {
+      const provider = document.getElementById('aiProvider').value;
+      document.getElementById('aiModel').value = provider === 'gemini' ? 'gemini-2.5-flash' : 'gpt-4o-mini';
+    }
+
+    function copyWebhookUrl() {
+      navigator.clipboard.writeText(document.getElementById('webhookUrlDisplay').value);
+      showToast("Đã copy Webhook URL!");
+    }
+
+    async function fetchAllData() {
       const res = await fetch('/api/data');
       appData = await res.json();
-
       document.getElementById('botActiveToggle').checked = appData.config.botActive;
+      updateBotBadge(appData.config.botActive);
       document.getElementById('pageName').value = appData.config.pageName || '';
       document.getElementById('pageAccessToken').value = appData.config.pageAccessToken || '';
       document.getElementById('verifyToken').value = appData.config.verifyToken || '';
+      document.getElementById('aiProvider').value = appData.config.aiProvider || 'gemini';
       document.getElementById('aiApiKey').value = appData.config.aiApiKey || '';
       document.getElementById('aiModel').value = appData.config.aiModel || 'gemini-2.5-flash';
+
       document.getElementById('botName').value = appData.persona.botName || '';
-      document.getElementById('pronoun').value = appData.persona.pronoun || '';
+      document.getElementById('pronoun').value = appData.persona.pronoun || 'Em - Anh/Chị';
       document.getElementById('tone').value = appData.persona.tone || '';
       document.getElementById('fallback').value = appData.persona.fallback || '';
 
       renderDocuments();
-      renderCustomerList();
-      if (activeCustomerPSID) renderChatBox(activeCustomerPSID);
+      renderConversationList();
+    }
+
+    function updateBotBadge(isActive) {
+      const badge = document.getElementById('botStatusBadge');
+      badge.className = `text-sm font-medium ${isActive ? 'text-emerald-400' : 'text-amber-400'} flex items-center gap-2`;
+      badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full ${isActive ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}"></span> ${isActive ? 'Đang trực 24/7' : 'Đang tạm dừng'}`;
     }
 
     async function saveConnectionConfig() {
@@ -246,11 +625,13 @@
         pageName: document.getElementById('pageName').value,
         pageAccessToken: document.getElementById('pageAccessToken').value,
         verifyToken: document.getElementById('verifyToken').value,
+        aiProvider: document.getElementById('aiProvider').value,
         aiApiKey: document.getElementById('aiApiKey').value,
         aiModel: document.getElementById('aiModel').value
       };
+      updateBotBadge(payload.botActive);
       await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      showToast("Đã lưu cấu hình!");
+      showToast("Đã lưu cấu hình kết nối!");
     }
 
     async function savePersonaConfig() {
@@ -271,117 +652,44 @@
         return;
       }
       container.innerHTML = appData.documents.map(doc => `
-        <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 flex flex-col justify-between">
+        <div class="bg-slate-800/80 border ${doc.active ? 'border-slate-700' : 'border-slate-800 opacity-60'} rounded-2xl p-5 flex flex-col justify-between">
           <div>
-            <h4 class="font-bold text-base text-blue-400 mb-2">${doc.title}</h4>
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <h4 class="font-bold text-base text-blue-400">${doc.title}</h4>
+              <span class="text-xs px-2.5 py-1 rounded-full ${doc.active ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'}">${doc.active ? 'Đang dùng' : 'Đã tắt'}</span>
+            </div>
             <p class="text-sm text-slate-300 whitespace-pre-line line-clamp-4 mb-4">${doc.content}</p>
           </div>
-          <div class="flex justify-end gap-2 pt-3 border-t border-slate-700/60">
-            <button onclick="editDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-blue-600/30 text-blue-300 text-xs">Sửa</button>
-            <button onclick="deleteDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-rose-600/30 text-rose-300 text-xs">Xóa</button>
+          <div class="flex items-center justify-between pt-3 border-t border-slate-700/60 text-xs text-slate-400">
+            <span>Cập nhật: ${doc.updatedAt}</span>
+            <div class="flex items-center gap-2">
+              <button onclick="toggleDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-white">${doc.active ? 'Tắt' : 'Bật'}</button>
+              <button onclick="editDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white">Sửa</button>
+              <button onclick="deleteDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white">Xóa</button>
+            </div>
           </div>
         </div>
       `).join('');
     }
 
-    function renderCustomerList() {
-      const container = document.getElementById('customerList');
-      const convs = appData.conversations || {};
-      const psids = Object.keys(convs);
-
-      if (psids.length === 0) {
-        container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs">Chưa có khách nhắn tin thực tế.</div>`;
-        return;
-      }
-
-      container.innerHTML = psids.map(psid => {
-        const lastMsg = convs[psid].messages[convs[psid].messages.length - 1] || {};
-        const isSelected = activeCustomerPSID === psid;
-        return `
-          <div onclick="selectCustomer('${psid}')" class="p-3.5 cursor-pointer transition hover:bg-slate-800 ${isSelected ? 'bg-slate-800 border-l-4 border-blue-500' : ''}">
-            <div class="flex justify-between items-center mb-1">
-              <span class="font-bold text-xs text-blue-400">Khách ID: ${psid.slice(-6)}</span>
-              <span class="text-[10px] text-slate-500">${lastMsg.time || ''}</span>
-            </div>
-            <p class="text-xs text-slate-300 truncate">${lastMsg.text || '...'}</p>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function selectCustomer(psid) {
-      activeCustomerPSID = psid;
-      renderCustomerList();
-      renderChatBox(psid);
-      document.getElementById('chatInputArea').classList.remove('hidden');
-    }
-
-    function renderChatBox(psid) {
-      const convs = appData.conversations || {};
-      const chatData = convs[psid] || { messages: [] };
-      const header = document.getElementById('chatHeader');
-      header.innerHTML = `<span class="font-bold text-sm text-slate-200"><i class="fa-solid fa-user text-blue-400 mr-2"></i> Khách hàng ID: ${psid}</span>`;
-
-      const box = document.getElementById('messengerBox');
-      box.innerHTML = chatData.messages.map(m => {
-        if (m.sender === 'customer') {
-          return `<div class="flex justify-start"><div class="bg-slate-800 text-slate-100 p-3 rounded-2xl rounded-tl-none max-w-[80%] space-y-1"><p class="text-xs text-slate-400 font-semibold">Khách hàng</p><p>${m.text}</p><span class="text-[9px] text-slate-500 block text-right">${m.time}</span></div></div>`;
-        } else if (m.sender === 'ai') {
-          return `<div class="flex justify-end"><div class="bg-blue-600/80 text-white p-3 rounded-2xl rounded-tr-none max-w-[80%] space-y-1"><p class="text-xs text-blue-200 font-semibold">Trợ lý AI</p><p>${m.text}</p><span class="text-[9px] text-blue-200 block text-right">${m.time}</span></div></div>`;
-        } else {
-          return `<div class="flex justify-end"><div class="bg-emerald-600 text-white p-3 rounded-2xl rounded-tr-none max-w-[80%] space-y-1"><p class="text-xs text-emerald-200 font-semibold">Quản trị viên (Admin)</p><p>${m.text}</p><span class="text-[9px] text-emerald-200 block text-right">${m.time}</span></div></div>`;
-        }
-      }).join('');
-      box.scrollTop = box.scrollHeight;
-    }
-
-    async function sendAdminMessage() {
-      const input = document.getElementById('adminReplyInput');
-      const text = input.value.trim();
-      if (!text || !activeCustomerPSID) return;
-
-      const res = await fetch('/api/admin-send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senderId: activeCustomerPSID, message: text })
-      });
-      const data = await res.json();
-      if (data.success) {
-        appData.conversations = data.conversations;
-        input.value = '';
-        renderChatBox(activeCustomerPSID);
-        showToast("Đã gửi tin nhắn thủ công từ Quản trị viên!");
-      }
-    }
-
     function openDocModal() {
+      document.getElementById('modalTitle').innerText = "Thêm tài liệu mới";
       document.getElementById('editDocId').value = "";
       document.getElementById('docTitleInput').value = "";
       document.getElementById('docContentInput').value = "";
       document.getElementById('docModal').classList.remove('hidden');
       document.getElementById('docModal').classList.add('flex');
     }
-    function closeDocModal() { document.getElementById('docModal').classList.add('hidden'); document.getElementById('docModal').classList.remove('flex'); }
 
-    async function saveDocument() {
-      const id = document.getElementById('editDocId').value;
-      const title = document.getElementById('docTitleInput').value.trim();
-      const content = document.getElementById('docContentInput').value.trim();
-      if (!title || !content) return alert("Nhập đủ!");
-      await fetch('/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: id ? 'update' : 'add', doc: { id, title, content } }) });
-      closeDocModal();
-      loadRealtimeData();
-      showToast("Đã lưu!");
-    }
-
-    async function deleteDoc(id) {
-      if (!confirm("Xóa?")) return;
-      await fetch('/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', id }) });
-      loadRealtimeData();
+    function closeDocModal() {
+      document.getElementById('docModal').classList.add('hidden');
+      document.getElementById('docModal').classList.remove('flex');
     }
 
     function editDoc(id) {
       const doc = appData.documents.find(d => d.id === id);
+      if (!doc) return;
+      document.getElementById('modalTitle').innerText = "Chỉnh sửa tài liệu";
       document.getElementById('editDocId').value = doc.id;
       document.getElementById('docTitleInput').value = doc.title;
       document.getElementById('docContentInput').value = doc.content;
@@ -389,9 +697,68 @@
       document.getElementById('docModal').classList.add('flex');
     }
 
-    // Tự động làm mới dữ liệu realtime mỗi 3 giây
-    setInterval(loadRealtimeData, 3000);
-    loadRealtimeData();
+    async function saveDocument() {
+      const id = document.getElementById('editDocId').value;
+      const title = document.getElementById('docTitleInput').value.trim();
+      const content = document.getElementById('docContentInput').value.trim();
+      if (!title || !content) return alert("Nhập đủ tiêu đề và nội dung!");
+      const action = id ? 'update' : 'add';
+      const res = await fetch('/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, doc: { id, title, content, active: true } }) });
+      const data = await res.json();
+      appData.documents = data.documents;
+      renderDocuments();
+      closeDocModal();
+      showToast("Đã lưu tài liệu!");
+    }
+
+    async function toggleDoc(id) {
+      const res = await fetch('/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'toggle', id }) });
+      const data = await res.json();
+      appData.documents = data.documents;
+      renderDocuments();
+    }
+
+    async function deleteDoc(id) {
+      if (!confirm("Xóa tài liệu này?")) return;
+      const res = await fetch('/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', id }) });
+      const data = await res.json();
+      appData.documents = data.documents;
+      renderDocuments();
+      showToast("Đã xóa!");
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const content = e.target.result;
+        const res = await fetch('/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', doc: { title: file.name, content } }) });
+        const data = await res.json();
+        appData.documents = data.documents;
+        renderDocuments();
+        showToast(`Đã nạp file "${file.name}"!`);
+      };
+      reader.readAsText(file);
+    }
+
+    async function sendTestMessage() {
+      const input = document.getElementById('testChatInput');
+      const text = input.value.trim();
+      if (!text) return;
+      const chatBox = document.getElementById('chatMessages');
+      chatBox.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none max-w-[85%]">${text}</div></div>`;
+      input.value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      const res = await fetch('/api/test-chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
+      const data = await res.json();
+      chatBox.innerHTML += `<div class="flex justify-start"><div class="bg-slate-700/80 border ${data.needsAdmin ? 'border-rose-500' : 'border-transparent'} text-slate-100 p-3 rounded-2xl rounded-tl-none max-w-[85%] whitespace-pre-line">${data.reply}</div></div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    fetchAllData();
+    connectRealtimeStream();
   </script>
 </body>
 </html>
