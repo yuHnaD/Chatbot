@@ -497,7 +497,17 @@
     function renderActiveChat(conv) {
       document.getElementById('activeUserName').innerText = conv.userName;
       document.getElementById('activeUserId').innerText = `ID: ${conv.senderId}`;
-      document.getElementById('activeUserAvatar').innerText = (conv.userName || 'KH').slice(0, 2).toUpperCase();
+      // document.getElementById('activeUserAvatar').innerText = (conv.userName || 'KH').slice(0, 2).toUpperCase();
+      // SỬA ĐOẠN NÀY ĐỂ HIỂN THỊ ĐÚNG ẢNH AVATAR THẬT TỪ FACEBOOK
+      const avatarContainer = document.getElementById('activeUserAvatar');
+      if (conv.userAvatar) {
+        avatarContainer.innerHTML = `<img src="${conv.userAvatar}" class="w-10 h-10 rounded-full object-cover border border-slate-700">`;
+        avatarContainer.className = "w-10 h-10 rounded-full shrink-0 overflow-hidden";
+      } else {
+        const initials = (conv.userName || 'KH').slice(0, 2).toUpperCase();
+        avatarContainer.innerHTML = initials;
+        avatarContainer.className = "w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm text-white shrink-0";
+      }
       document.getElementById('userAiToggle').checked = !!conv.aiEnabled;
 
       const needsAdminBadge = document.getElementById('activeNeedsAdminBadge');
