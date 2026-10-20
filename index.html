@@ -451,11 +451,15 @@
       listEl.innerHTML = filtered.map(conv => {
         const isSelected = conv.senderId === selectedSenderId;
         const initials = (conv.userName || 'KH').slice(0, 2).toUpperCase();
+        
+        // Kiểm tra nếu có avatar từ Facebook thì hiển thị ảnh, nếu không thì hiển thị chữ cái đầu
+        const avatarHtml = conv.userAvatar 
+          ? `<img src="${conv.userAvatar}" class="w-11 h-11 rounded-full object-cover shrink-0 border border-slate-700">`
+          : `<div class="w-11 h-11 rounded-full bg-blue-600/30 border border-blue-500/30 flex items-center justify-center font-bold text-blue-300 shrink-0">${initials}</div>`;
+
         return `
           <div onclick="selectConversation('${conv.senderId}')" class="p-3.5 cursor-pointer transition flex items-start gap-3 ${isSelected ? 'bg-slate-800' : 'hover:bg-slate-900/60'} ${conv.needsAdmin ? 'border-l-4 border-rose-500 bg-rose-950/20' : ''}">
-            <div class="w-11 h-11 rounded-full bg-blue-600/30 border border-blue-500/30 flex items-center justify-center font-bold text-blue-300 shrink-0">
-              ${initials}
-            </div>
+            ${avatarHtml}
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-1">
                 <h4 class="font-semibold text-sm truncate">${conv.userName}</h4>

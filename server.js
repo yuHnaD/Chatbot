@@ -269,7 +269,8 @@ app.post('/webhook', async (req, res) => {
         if (!db.conversations[senderPsid]) {
           db.conversations[senderPsid] = {
             senderId: senderPsid,
-            userName: `Khách ${senderPsid.slice(-4)}`,
+            userName: fbProfile.fullName,
+            userAvatar: fbProfile.avatar,
             messages: [],
             aiEnabled: true,
             needsAdmin: false
@@ -324,6 +325,25 @@ async function sendFacebookMessage(recipientId, text, token) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ recipient: { id: recipientId }, message: { text } })
   });
+}
+
+// Hàm gọi Facebook Graph API để lấy Tên và Avatar thật của khách hàng
+async function getFacebookUserProfile(senderId, pageAccessToken) {
+  try {
+    const url = `https://graph.facebook.com/v19.0/${senderId}?fields=first_name,last_name,profile_pic&access_token=${pageAccessToken.trim()}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    if (response.ok && !data.error) {
+      const firstName = data.first_name || '';
+      const lastName = data.last_name || '';
+      const fullName = (firstName + ' ' + lastName).trim() || `Khách ${senderId.slice(-4)}`;
+      const avatar = data.profile_pic || '';
+      return { fullName, avatar };
+    }
+  } catch (e) {
+    console.error("Không lấy được profile Facebook của khách:", e.message);
+  }
+  return { fullName: `Khách ${senderId.slice(-4)}`, avatar: '' };
 }
 
 app.get('/', (req, res) => {
