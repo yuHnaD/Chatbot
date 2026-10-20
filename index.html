@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Messenger Hub - Quản Trị Chatbot Fanpage</title>
+  <title>AI Messenger Hub - Quản Trị Chatbot Lái Hộ</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
@@ -17,7 +17,7 @@
           <i class="fa-brands fa-facebook-messenger"></i>
         </div>
         <div>
-          <h1 class="font-bold text-lg leading-tight">AI Messenger Hub</h1>
+          <h1 class="font-bold text-lg leading-tight">Lái Hộ AI Hub</h1>
           <p class="text-xs text-slate-400">Hệ thống No-Code Quản trị Bot</p>
         </div>
       </div>
@@ -42,7 +42,7 @@
           <i class="fa-solid fa-plug w-5"></i> 1. Kết nối FB & API Key
         </button>
         <button onclick="switchTab('tab-knowledge')" id="btn-tab-knowledge" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800">
-          <i class="fa-solid fa-book-open w-5"></i> 2. Kho Tài Liệu Công Ty
+          <i class="fa-solid fa-book-open w-5"></i> 2. Kho Tài Liệu Laiho
         </button>
         <button onclick="switchTab('tab-persona')" id="btn-tab-persona" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800">
           <i class="fa-solid fa-user-astronaut w-5"></i> 3. Nhân Cách & Giọng Điệu
@@ -54,60 +54,57 @@
     </div>
 
     <div class="mt-8 pt-4 border-t border-slate-800 text-xs text-slate-500">
-      Mọi thay đổi đều lưu trực tiếp vào Server, áp dụng tức thì mà không cần sửa code.
+      Dữ liệu tự động đồng bộ lên Server 24/7.
     </div>
   </aside>
 
   <!-- MAIN CONTENT -->
   <main class="flex-1 p-6 md:p-10 overflow-y-auto">
     
-    <!-- Thông báo Toast -->
     <div id="toast" class="fixed top-5 right-5 hidden bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl font-medium text-sm z-50 flex items-center gap-2">
       <i class="fa-solid fa-circle-check"></i> <span id="toastMsg">Đã lưu thành công!</span>
     </div>
 
-    <!-- TAB 1: KẾT NỐI FACEBOOK & API KEY -->
+    <!-- TAB 1: KẾT NỐI -->
     <section id="tab-connect" class="tab-section max-w-4xl space-y-6">
       <div>
         <h2 class="text-2xl font-bold">1. Cấu hình Kết nối Facebook & AI API Key</h2>
-        <p class="text-slate-400 text-sm mt-1">Điền mã Token từ Meta for Developers và khóa AI để kích hoạt bot trả lời thật.</p>
+        <p class="text-slate-400 text-sm mt-1">Điền mã Token từ Meta for Developers để bot trực Fanpage Lái Hộ.</p>
       </div>
 
-      <!-- Khối Webhook URL -->
       <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-4">
         <h3 class="font-semibold text-blue-400 flex items-center gap-2">
-          <i class="fa-solid fa-link"></i> Thông tin gắn vào mục Webhook trên Meta for Developers
+          <i class="fa-solid fa-link"></i> Thông tin gắn vào Webhook trên Meta for Developers
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="text-xs text-slate-400 block mb-1">Callback URL (Đường dẫn Webhook của bạn)</label>
+            <label class="text-xs text-slate-400 block mb-1">Callback URL (Webhook)</label>
             <div class="flex">
               <input type="text" id="webhookUrlDisplay" readonly class="w-full bg-slate-900 border border-slate-700 rounded-l-xl px-3 py-2.5 text-sm text-emerald-400 font-mono" />
               <button onclick="copyWebhookUrl()" class="bg-slate-700 hover:bg-slate-600 px-4 rounded-r-xl text-sm font-medium">Copy</button>
             </div>
           </div>
           <div>
-            <label class="text-xs text-slate-400 block mb-1">Verify Token (Mật khẩu xác thực Webhook)</label>
-            <input type="text" id="verifyToken" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm font-mono" placeholder="my_secret_verify_token_123" />
+            <label class="text-xs text-slate-400 block mb-1">Verify Token</label>
+            <input type="text" id="verifyToken" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm font-mono" />
           </div>
         </div>
       </div>
 
-      <!-- Khối Token Fanpage & AI Key -->
       <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-5">
         <h3 class="font-semibold text-amber-400 flex items-center gap-2">
-          <i class="fa-solid fa-key"></i> Chìa khóa kết nối Fanpage & Trí tuệ nhân tạo
+          <i class="fa-solid fa-key"></i> Chìa khóa Fanpage & AI
         </h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="text-sm font-medium block mb-1">Tên Fanpage (Để dễ quản lý)</label>
-            <input type="text" id="pageName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="VD: Shop Thời Trang ABC" />
+            <label class="text-sm font-medium block mb-1">Tên Fanpage</label>
+            <input type="text" id="pageName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
           </div>
           <div>
-            <label class="text-sm font-medium block mb-1">Nền tảng AI sử dụng</label>
+            <label class="text-sm font-medium block mb-1">Nền tảng AI</label>
             <select id="aiProvider" onchange="updateDefaultModel()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm">
-              <option value="gemini">Google Gemini (Khuyên dùng - Nhanh & Có gói miễn phí)</option>
+              <option value="gemini">Google Gemini (Khuyên dùng)</option>
               <option value="openai">OpenAI (ChatGPT)</option>
             </select>
           </div>
@@ -116,39 +113,36 @@
         <div>
           <label class="text-sm font-medium block mb-1">Facebook Page Access Token <span class="text-rose-400">*</span></label>
           <input type="password" id="pageAccessToken" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" placeholder="EAA..." />
-          <p class="text-xs text-slate-400 mt-1">Lấy tại Meta for Developers -> Messenger -> Cài đặt API -> Tạo mã truy cập cho Trang.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="md:col-span-2">
-            <label class="text-sm font-medium block mb-1">AI API Key (Gemini hoặc OpenAI) <span class="text-rose-400">*</span></label>
-            <input type="password" id="aiApiKey" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" placeholder="AIzaSy... hoặc sk-..." />
+            <label class="text-sm font-medium block mb-1">AI API Key <span class="text-rose-400">*</span></label>
+            <input type="password" id="aiApiKey" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" placeholder="AIzaSy..." />
           </div>
           <div>
             <label class="text-sm font-medium block mb-1">Tên Model AI</label>
-            <input type="text" id="aiModel" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" placeholder="gemini-2.5-flash" />
+            <input type="text" id="aiModel" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" />
           </div>
         </div>
 
-        <div class="pt-2">
-          <button onclick="saveConnectionConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2">
-            <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình Kết Nối
-          </button>
-        </div>
+        <button onclick="saveConnectionConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
+          <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình Kết Nối
+        </button>
       </div>
     </section>
 
-    <!-- TAB 2: KHO TÀI LIỆU HUẤN LUYỆN AI -->
+    <!-- TAB 2: TÀI LIỆU -->
     <section id="tab-knowledge" class="tab-section hidden max-w-5xl space-y-6">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 class="text-2xl font-bold">2. Kho Tài Liệu Công Ty (Huấn luyện AI)</h2>
-          <p class="text-slate-400 text-sm mt-1">Thêm bảng giá, chính sách, câu hỏi thường gặp hoặc tải file lên. AI sẽ đọc tức thì.</p>
+          <h2 class="text-2xl font-bold">2. Kho Tài Liệu Lái Hộ (Huấn luyện AI)</h2>
+          <p class="text-slate-400 text-sm mt-1">Chỉnh sửa hoặc bổ sung bảng giá, chính sách tài xế ngay trên web.</p>
         </div>
         <div class="flex gap-3">
           <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2">
-            <i class="fa-solid fa-file-arrow-up text-blue-400"></i> Tải file (.txt, .csv, .md)
-            <input type="file" id="fileUploadInput" accept=".txt,.csv,.md,.json" class="hidden" onchange="handleFileUpload(event)" />
+            <i class="fa-solid fa-file-arrow-up text-blue-400"></i> Tải file (.txt)
+            <input type="file" id="fileUploadInput" accept=".txt,.csv,.md" class="hidden" onchange="handleFileUpload(event)" />
           </label>
           <button onclick="openDocModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2">
             <i class="fa-solid fa-plus"></i> Viết tài liệu mới
@@ -156,17 +150,14 @@
         </div>
       </div>
 
-      <!-- Danh sách tài liệu -->
       <div id="documentsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </section>
 
-    <!-- TAB 3: NHÂN CÁCH AI -->
+    <!-- TAB 3: NHÂN CÁCH -->
     <section id="tab-persona" class="tab-section hidden max-w-3xl space-y-6">
       <div>
         <h2 class="text-2xl font-bold">3. Thiết lập Nhân cách & Giọng điệu AI</h2>
-        <p class="text-slate-400 text-sm mt-1">Tùy chỉnh cách AI xưng hô và phản ứng khi khách hỏi ngoài tài liệu công ty.</p>
       </div>
-
       <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -174,74 +165,53 @@
             <input type="text" id="botName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
           </div>
           <div>
-            <label class="text-sm font-medium block mb-1">Cách xưng hô với khách</label>
+            <label class="text-sm font-medium block mb-1">Cách xưng hô</label>
             <select id="pronoun" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm">
-              <option value="Em - Anh/Chị">Em - Anh/Chị (Lịch sự, phổ biến)</option>
-              <option value="Mình - Bạn">Mình - Bạn (Trẻ trung, gần gũi)</option>
-              <option value="Shop - Bạn">Shop - Bạn</option>
-              <option value="Tôi - Quý khách">Tôi - Quý khách (Trang trọng)</option>
+              <option value="Em - Anh/Chị">Em - Anh/Chị</option>
+              <option value="Mình - Bạn">Mình - Bạn</option>
             </select>
           </div>
         </div>
-
         <div>
           <label class="text-sm font-medium block mb-1">Phong cách giao tiếp</label>
-          <input type="text" id="tone" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="VD: Thân thiện, nhiệt tình, chốt đơn khéo léo..." />
+          <input type="text" id="tone" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
         </div>
-
         <div>
-          <label class="text-sm font-medium block mb-1">Câu trả lời dự phòng (Khi khách hỏi ngoài tài liệu)</label>
+          <label class="text-sm font-medium block mb-1">Câu trả lời dự phòng</label>
           <textarea id="fallback" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm"></textarea>
         </div>
-
         <button onclick="savePersonaConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
           <i class="fa-solid fa-floppy-disk"></i> Lưu Nhân Cách AI
         </button>
       </div>
     </section>
 
-    <!-- TAB 4: CHAT THỬ & NHẬT KÝ MESSENGER THẬT -->
+    <!-- TAB 4: CHAT THỬ & NHẬT KÝ -->
     <section id="tab-test" class="tab-section hidden max-w-6xl">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        <!-- Cột trái: Chat test trực tiếp với Server AI -->
         <div class="bg-slate-800/70 border border-slate-700 rounded-2xl flex flex-col h-[560px]">
-          <div class="p-4 border-b border-slate-700 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center font-bold">AI</div>
-              <div>
-                <h3 class="font-semibold text-sm">Giả lập Test AI (Dùng chung API thật)</h3>
-                <p class="text-xs text-emerald-400">Đang áp dụng trực tiếp tài liệu của bạn</p>
-              </div>
-            </div>
+          <div class="p-4 border-b border-slate-700">
+            <h3 class="font-semibold text-sm">Giả lập Test AI</h3>
           </div>
-
           <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm">
             <div class="bg-slate-700/70 text-slate-200 p-3 rounded-2xl rounded-tl-none max-w-[85%]">
-              Xin chào! Bạn hãy nhắn thử một câu hỏi về giá cả hoặc chính sách công ty để kiểm tra độ thông minh của AI nhé.
+              Xin chào! Hãy hỏi thử về giá cước, cách đặt xe hoặc thủ tục đăng ký tài xế Lái Hộ nhé.
             </div>
           </div>
-
           <div class="p-3 border-t border-slate-700 flex gap-2">
-            <input type="text" id="testChatInput" onkeypress="if(event.key==='Enter') sendTestMessage()" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="Nhập tin nhắn đóng vai khách hàng..." />
+            <input type="text" id="testChatInput" onkeypress="if(event.key==='Enter') sendTestMessage()" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="Nhập tin nhắn..." />
             <button onclick="sendTestMessage()" class="bg-blue-600 hover:bg-blue-500 px-5 rounded-xl font-medium text-sm">Gửi</button>
           </div>
         </div>
 
-        <!-- Cột phải: Nhật ký tin nhắn khách hàng từ Facebook thật -->
         <div class="bg-slate-800/70 border border-slate-700 rounded-2xl flex flex-col h-[560px]">
           <div class="p-4 border-b border-slate-700 flex items-center justify-between">
-            <div>
-              <h3 class="font-semibold text-sm flex items-center gap-2">
-                <i class="fa-brands fa-facebook text-blue-400"></i> Nhật ký Tin nhắn Fanpage Thật
-              </h3>
-              <p class="text-xs text-slate-400">Hiển thị các cuộc hội thoại AI đã tự động trả lời trên Messenger</p>
-            </div>
-            <button onclick="fetchAllData()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg">
-              <i class="fa-solid fa-rotate"></i> Làm mới
-            </button>
+            <h3 class="font-semibold text-sm flex items-center gap-2">
+              <i class="fa-brands fa-facebook text-blue-400"></i> Nhật ký Tin nhắn Thật
+            </h3>
+            <button onclick="fetchAllData()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg">Làm mới</button>
           </div>
-
           <div id="realLogsContainer" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm"></div>
         </div>
 
@@ -250,30 +220,28 @@
 
   </main>
 
-  <!-- MODAL THÊM / SỬA TÀI LIỆU -->
+  <!-- MODAL TÀI LIỆU -->
   <div id="docModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-xl w-full p-6 space-y-4">
-      <h3 id="modalTitle" class="text-lg font-bold">Thêm tài liệu huấn luyện mới</h3>
+      <h3 id="modalTitle" class="text-lg font-bold">Thêm tài liệu huấn luyện</h3>
       <input type="hidden" id="editDocId" />
       <div>
-        <label class="text-xs text-slate-400 block mb-1">Tiêu đề tài liệu (VD: Bảng giá dịch vụ, Quy định đổi trả...)</label>
+        <label class="text-xs text-slate-400 block mb-1">Tiêu đề</label>
         <input type="text" id="docTitleInput" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
       </div>
       <div>
-        <label class="text-xs text-slate-400 block mb-1">Nội dung chi tiết (AI sẽ đọc hiểu toàn bộ văn bản này)</label>
+        <label class="text-xs text-slate-400 block mb-1">Nội dung chi tiết</label>
         <textarea id="docContentInput" rows="7" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm"></textarea>
       </div>
       <div class="flex justify-end gap-3 pt-2">
         <button onclick="closeDocModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm">Hủy</button>
-        <button onclick="saveDocument()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-semibold">Lưu vào Kho Tri Thức</button>
+        <button onclick="saveDocument()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-semibold">Lưu</button>
       </div>
     </div>
   </div>
 
   <script>
     let appData = {};
-
-    // Hiển thị đường dẫn Webhook tự động theo tên miền hiện tại
     document.getElementById('webhookUrlDisplay').value = window.location.origin + '/webhook';
 
     function showToast(msg) {
@@ -286,10 +254,7 @@
     function switchTab(tabId) {
       document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
       document.getElementById(tabId).classList.remove('hidden');
-
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800";
-      });
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800");
       document.getElementById('btn-' + tabId).className = "tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium bg-blue-600 text-white";
     }
 
@@ -300,15 +265,12 @@
 
     function copyWebhookUrl() {
       navigator.clipboard.writeText(document.getElementById('webhookUrlDisplay').value);
-      showToast("Đã copy đường dẫn Webhook!");
+      showToast("Đã copy Webhook URL!");
     }
 
-    // Tải toàn bộ dữ liệu từ Server Backend
     async function fetchAllData() {
       const res = await fetch('/api/data');
       appData = await res.json();
-
-      // Đổ dữ liệu vào Tab 1
       document.getElementById('botActiveToggle').checked = appData.config.botActive;
       updateBotBadge(appData.config.botActive);
       document.getElementById('pageName').value = appData.config.pageName || '';
@@ -318,7 +280,6 @@
       document.getElementById('aiApiKey').value = appData.config.aiApiKey || '';
       document.getElementById('aiModel').value = appData.config.aiModel || 'gemini-2.5-flash';
 
-      // Đổ dữ liệu vào Tab 3
       document.getElementById('botName').value = appData.persona.botName || '';
       document.getElementById('pronoun').value = appData.persona.pronoun || 'Em - Anh/Chị';
       document.getElementById('tone').value = appData.persona.tone || '';
@@ -330,13 +291,8 @@
 
     function updateBotBadge(isActive) {
       const badge = document.getElementById('botStatusBadge');
-      if (isActive) {
-        badge.className = "text-sm font-medium text-emerald-400 flex items-center gap-2";
-        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span> Đang tự động trả lời`;
-      } else {
-        badge.className = "text-sm font-medium text-amber-400 flex items-center gap-2";
-        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Đang tạm dừng Bot`;
-      }
+      badge.className = `text-sm font-medium ${isActive ? 'text-emerald-400' : 'text-amber-400'} flex items-center gap-2`;
+      badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full ${isActive ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}"></span> ${isActive ? 'Đang tự động trả lời' : 'Đang tạm dừng'}`;
     }
 
     async function saveConnectionConfig() {
@@ -350,12 +306,8 @@
         aiModel: document.getElementById('aiModel').value
       };
       updateBotBadge(payload.botActive);
-      await fetch('/api/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      showToast("Đã lưu cấu hình kết nối lên Server!");
+      await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      showToast("Đã lưu cấu hình kết nối!");
     }
 
     async function savePersonaConfig() {
@@ -365,39 +317,29 @@
         tone: document.getElementById('tone').value,
         fallback: document.getElementById('fallback').value
       };
-      await fetch('/api/persona', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      showToast("Đã cập nhật nhân cách AI!");
+      await fetch('/api/persona', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      showToast("Đã lưu nhân cách AI!");
     }
 
-    // Quản lý Tài liệu
     function renderDocuments() {
       const container = document.getElementById('documentsList');
       if (!appData.documents || appData.documents.length === 0) {
-        container.innerHTML = `<div class="col-span-2 text-center py-12 text-slate-500">Chưa có tài liệu nào. Hãy bấm "Viết tài liệu mới" hoặc tải file lên.</div>`;
+        container.innerHTML = `<div class="col-span-2 text-center py-12 text-slate-500">Chưa có tài liệu.</div>`;
         return;
       }
-
       container.innerHTML = appData.documents.map(doc => `
         <div class="bg-slate-800/80 border ${doc.active ? 'border-slate-700' : 'border-slate-800 opacity-60'} rounded-2xl p-5 flex flex-col justify-between">
           <div>
             <div class="flex items-start justify-between gap-2 mb-2">
               <h4 class="font-bold text-base text-blue-400">${doc.title}</h4>
-              <span class="text-xs px-2.5 py-1 rounded-full ${doc.active ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'}">
-                ${doc.active ? 'Đang dùng' : 'Đã tắt'}
-              </span>
+              <span class="text-xs px-2.5 py-1 rounded-full ${doc.active ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'}">${doc.active ? 'Đang dùng' : 'Đã tắt'}</span>
             </div>
             <p class="text-sm text-slate-300 whitespace-pre-line line-clamp-4 mb-4">${doc.content}</p>
           </div>
           <div class="flex items-center justify-between pt-3 border-t border-slate-700/60 text-xs text-slate-400">
             <span>Cập nhật: ${doc.updatedAt}</span>
             <div class="flex items-center gap-2">
-              <button onclick="toggleDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-white">
-                ${doc.active ? 'Tắt' : 'Bật'}
-              </button>
+              <button onclick="toggleDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-white">${doc.active ? 'Tắt' : 'Bật'}</button>
               <button onclick="editDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white">Sửa</button>
               <button onclick="deleteDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white">Xóa</button>
             </div>
@@ -407,7 +349,7 @@
     }
 
     function openDocModal() {
-      document.getElementById('modalTitle').innerText = "Thêm tài liệu huấn luyện mới";
+      document.getElementById('modalTitle').innerText = "Thêm tài liệu mới";
       document.getElementById('editDocId').value = "";
       document.getElementById('docTitleInput').value = "";
       document.getElementById('docContentInput').value = "";
@@ -435,102 +377,66 @@
       const id = document.getElementById('editDocId').value;
       const title = document.getElementById('docTitleInput').value.trim();
       const content = document.getElementById('docContentInput').value.trim();
-      if (!title || !content) return alert("Vui lòng nhập đủ tiêu đề và nội dung!");
-
+      if (!title || !content) return alert("Nhập đủ tiêu đề và nội dung!");
       const action = id ? 'update' : 'add';
-      const res = await fetch('/api/documents', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, doc: { id, title, content, active: true } })
-      });
+      const res = await fetch('/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, doc: { id, title, content, active: true } }) });
       const data = await res.json();
       appData.documents = data.documents;
       renderDocuments();
       closeDocModal();
-      showToast("Đã cập nhật Kho Tài Liệu!");
+      showToast("Đã lưu tài liệu!");
     }
 
     async function toggleDoc(id) {
-      const res = await fetch('/api/documents', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'toggle', id })
-      });
+      const res = await fetch('/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'toggle', id }) });
       const data = await res.json();
       appData.documents = data.documents;
       renderDocuments();
     }
 
     async function deleteDoc(id) {
-      if (!confirm("Bạn có chắc muốn xóa tài liệu này?")) return;
-      const res = await fetch('/api/documents', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', id })
-      });
+      if (!confirm("Xóa tài liệu này?")) return;
+      const res = await fetch('/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', id }) });
       const data = await res.json();
       appData.documents = data.documents;
       renderDocuments();
-      showToast("Đã xóa tài liệu!");
+      showToast("Đã xóa!");
     }
 
-    // Tự động đọc file từ máy tính nạp thẳng lên Server
     function handleFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = async function(e) {
         const content = e.target.result;
-        const res = await fetch('/api/documents', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'add',
-            doc: { title: file.name, content }
-          })
-        });
+        const res = await fetch('/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', doc: { title: file.name, content } }) });
         const data = await res.json();
         appData.documents = data.documents;
         renderDocuments();
-        showToast(`Đã nạp file "${file.name}" vào bộ nhớ AI!`);
+        showToast(`Đã nạp file "${file.name}"!`);
       };
       reader.readAsText(file);
     }
 
-    // Chat thử nghiệm gọi thẳng lên AI của Server
     async function sendTestMessage() {
       const input = document.getElementById('testChatInput');
       const text = input.value.trim();
       if (!text) return;
-
       const chatBox = document.getElementById('chatMessages');
-      chatBox.innerHTML += `
-        <div class="flex justify-end">
-          <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none max-w-[85%]">${text}</div>
-        </div>
-      `;
+      chatBox.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none max-w-[85%]">${text}</div></div>`;
       input.value = '';
       chatBox.scrollTop = chatBox.scrollHeight;
 
-      const res = await fetch('/api/test-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
-      });
+      const res = await fetch('/api/test-chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
       const data = await res.json();
-
-      chatBox.innerHTML += `
-        <div class="flex justify-start">
-          <div class="bg-slate-700/80 text-slate-100 p-3 rounded-2xl rounded-tl-none max-w-[85%] whitespace-pre-line">${data.reply}</div>
-        </div>
-      `;
+      chatBox.innerHTML += `<div class="flex justify-start"><div class="bg-slate-700/80 text-slate-100 p-3 rounded-2xl rounded-tl-none max-w-[85%] whitespace-pre-line">${data.reply}</div></div>`;
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     function renderRealLogs() {
       const container = document.getElementById('realLogsContainer');
       if (!appData.logs || appData.logs.length === 0) {
-        container.innerHTML = `<div class="text-center text-slate-500 py-16">Chưa có tin nhắn nào từ Webhook Facebook.<br/>Sau khi bạn gắn Webhook, tin nhắn khách thật sẽ hiện tại đây.</div>`;
+        container.innerHTML = `<div class="text-center text-slate-500 py-16">Chưa có tin nhắn từ Messenger.</div>`;
         return;
       }
       container.innerHTML = appData.logs.map(log => `
@@ -539,8 +445,8 @@
             <span>Khách ID: <strong class="text-slate-300">${log.senderId}</strong></span>
             <span>${log.time}</span>
           </div>
-          <div class="text-amber-300 text-sm"><strong>Khách hỏi:</strong> ${log.question}</div>
-          <div class="text-emerald-300 text-sm whitespace-pre-line"><strong>AI đáp:</strong> ${log.answer}</div>
+          <div class="text-amber-300 text-sm"><strong>Hỏi:</strong> ${log.question}</div>
+          <div class="text-emerald-300 text-sm whitespace-pre-line"><strong>Đáp:</strong> ${log.answer}</div>
         </div>
       `).join('');
     }
