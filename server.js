@@ -319,7 +319,7 @@ ${recentContext}`;
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemInstruction }] },
         contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-        generationConfig: { temperature: 0.2 }
+        generationConfig: { temperature: 0.5 }
       })
     });
     const data = await res.json();
