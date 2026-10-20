@@ -651,13 +651,39 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
+// async function sendFacebookMessage(recipientId, text, token) {
+//   if (!token) throw new Error("Chưa nhập Page Access Token!");
+//   await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token.trim()}`, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({ recipient: { id: recipientId }, message: { text } })
+//   });
+// }
+
 async function sendFacebookMessage(recipientId, text, token) {
-  if (!token) throw new Error("Chưa nhập Page Access Token!");
-  await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token.trim()}`, {
+  if (!token) {
+    console.error("❌ LỖI GỬI FB: Chưa nhập Page Access Token trên giao diện quản trị!");
+    throw new Error("Chưa nhập Page Access Token!");
+  }
+
+  const url = `https://graph.facebook.com/v19.0/me/messages?access_token=${token.trim()}`;
+  const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ recipient: { id: recipientId }, message: { text } })
+    body: JSON.stringify({
+      recipient: { id: recipientId },
+      message: { text: text }
+    })
   });
+
+  const data = await response.json();
+  
+  if (!response.ok || data.error) {
+    console.error("❌ FACEBOOK API TỪ CHỐI GỬI TIN NHẮN:", JSON.stringify(data.error || data));
+    throw new Error(data.error?.message || "Lỗi gọi Facebook Graph API");
+  }
+
+  console.log(`🤖 Đã đẩy tin nhắn ra Messenger thành công cho khách (${recipientId})!`);
 }
 
 // Hàm gọi Facebook Graph API để lấy Tên và Avatar thật của khách hàng
