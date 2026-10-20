@@ -121,8 +121,13 @@
         <div id="conversationList" class="flex-1 overflow-y-auto divide-y divide-slate-800/60"></div>
       </div>
 
-      <!-- Cột phải: Khung chat chi tiết với khách hàng -->
-      <div class="flex-1 flex flex-col bg-slate-950 h-full">
+     <!-- Cột phải: Khung chat chi tiết với khách hàng -->
+      <div class="flex-1 flex flex-col bg-slate-950 h-full relative">
+        
+        <!-- NÚT BẤM HIỆN RA KHI THU GỌN CỘT TRÁI -->
+        <button id="expandSidebarBtn" onclick="toggleInboxSidebar()" title="Mở lại danh sách hộp thư" class="hidden absolute left-3 top-3 z-30 bg-slate-800 hover:bg-slate-700 text-blue-400 p-2.5 rounded-xl shadow-xl border border-slate-700 transition flex items-center gap-2 text-xs font-semibold">
+          <i class="fa-solid fa-angles-right text-sm"></i> <span>Mở hộp thư</span>
+        </button>
         
         <!-- Trạng thái chưa chọn khách nào -->
         <div id="emptyChatState" class="flex-1 flex flex-col items-center justify-center text-slate-500 p-8 text-center">
