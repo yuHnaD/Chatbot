@@ -790,7 +790,7 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // --- TÍNH NĂNG 1: THU GỌN / MỞ RỘNG CỘT HỘP THƯ ---
+    // --- TÍNH NĂNG THU GỌN / MỞ RỘNG CỘT HỘP THƯ (ĐÃ SỬA CÓ NÚT SHOW RA) ---
     let isInboxCollapsed = false;
     function toggleInboxSidebar() {
       isInboxCollapsed = !isInboxCollapsed;
@@ -799,13 +799,17 @@
       const toggleIcon = document.getElementById('toggleIcon');
       
       if (isInboxCollapsed) {
+        // Thu gọn cột trái
         sidebar.classList.add('w-0', 'overflow-hidden', 'p-0', 'border-none');
         sidebar.classList.remove('w-80', 'md:w-96');
+        // Hiện nút mũi tên trôi nổi để mở ra
         expandBtn.classList.remove('hidden');
         toggleIcon.className = "fa-solid fa-angles-right";
       } else {
+        // Mở rộng cột trái
         sidebar.classList.remove('w-0', 'overflow-hidden', 'p-0', 'border-none');
         sidebar.classList.add('w-80', 'md:w-96');
+        // Ẩn nút mũi tên trôi nổi
         expandBtn.classList.add('hidden');
         toggleIcon.className = "fa-solid fa-angles-left";
       }
