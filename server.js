@@ -371,55 +371,57 @@ const defaultData = {
     verifyToken: "my_secret_verify_token_123",
     aiProvider: "gemini",
     aiApiKey: "",
-    aiModel: "gemini-2.5-flash"
+    aiModel: "gemini-3.5-flash"
   },
   persona: {
-    botName: "Linh - Trợ lý Lái Hộ",
+    botName: "AI - Trợ lý Lái Hộ",
     pronoun: "Em - Anh/Chị",
     tone: "Thân thiện, nhiệt tình, chuyên nghiệp, khéo léo suy luận từ khóa viết tắt hoặc không dấu của khách",
     fallback: "Dạ vấn đề này hiện nằm ngoài thông tin em đang nắm giữ. Em đã ghi nhận và chuyển câu hỏi này cho Quản trị viên hỗ trợ giải đáp cho Anh/Chị sớm nhất nhé ạ!"
   },
-  documents: [
-    {
-      id: "doc_laiho_1",
-      title: "Quy trình đặt xe & Thông tin chung Laiho",
-      content: "- Các bước đặt tài xế lái hộ trên app Laiho:\n  + Nhập Điểm đón/Điểm đi\n  + Chọn dịch vụ Tài xế Ô tô / Tài xế Xe máy / Tài xế đi tỉnh / Xe tải Van điện\n  + Chọn phương thức thanh toán\n  + Nhập mã khuyến mãi (nếu có)\n  + Chọn Đặt xe để hệ thống tìm tài xế gần nhất\n- Tải app tại: https://laiho.vn/",
-      active: true,
-      updatedAt: "Hôm nay"
-    },
-    {
-      id: "doc_laiho_2",
-      title: "Quy định chuyến đi & Giá cước",
-      content: "- Thuế VAT áp dụng cho các chuyến đi là 8%.\n- Phí dịch vụ (thu thêm ngoài cước): 10.000 VNĐ đối với xe ô tô và 7.000 VNĐ đối với xe máy.\n- Hệ thống điều chỉnh giảm giá chuyến cho khách đặt để tăng lượng khách.\n- Quy định khi khách đặt không có tài xế nhận: Bộ phận Điều phối sẽ chủ động gọi khách trước, tuyệt đối không để tài xế tự thỏa thuận (deal) giá.\n- Đã bãi bỏ chính sách gán chuyến không ăn chia đối với tài xế.\n- Hệ thống đã đấu nối thêm phương tiện xe tải Van điện lên app Laiho.",
-      active: true,
-      updatedAt: "Hôm nay"
-    },
-    {
-      id: "doc_laiho_3",
-      title: "Yêu cầu hồ sơ & Chiết khấu cho Tài xế",
-      content: "- Yêu cầu đăng ký:\n  + GPLX hạng A hoặc B2 trở lên (còn hạn).\n  + Kinh nghiệm lái xe >3 năm.\n  + CMND/CCCD và đã khai báo VNEID cấp 2.\n  + Giấy khám sức khỏe mẫu TT36.\n- Tỷ lệ chiết khấu:\n  + Tài xế ô tô: 75% - 25% (Tài xế nhận 75%).\n  + Tài xế xe máy: 80% - 20% (Tài xế nhận 80%).\n- Ưu đãi đặc biệt 1: Nộp kèm Lý lịch tư pháp hoặc Giấy xác nhận hạnh kiểm tại địa phương ➔ Hưởng ưu đãi chiết khấu xe hơi 12 tháng.\n- Ưu đãi đặc biệt 2: Tài xế giới thiệu khách tải app, khi khách đó đặt chuyến cho chính tài xế đó, tài xế được cộng thêm 5% doanh thu trước thuế và phí.\n- Chi phí ban đầu:\n  + Đồng phục (1 áo sơ mi + 1 áo khoác): Tặng đồng phục 100% khi Bác tài nhận 1 cuốc trên app (thay vì 230.000đ).\n  + Nạp ví tài xế tối thiểu: 200.000 VNĐ.",
-      active: true,
-      updatedAt: "Hôm nay"
-    },
-    {
-      id: "doc_laiho_4",
-      title: "Chính sách Quán đối tác & Chi nhánh",
-      content: "- Chính sách Quán đối tác: Tất cả các quán đối tác khi đặt chuyến thành công sẽ được hưởng 5% doanh thu trước thuế và phí.\n- Địa chỉ chi nhánh đăng ký trực tiếp (Thời gian: 8h - 17h từ Thứ 2 đến Thứ 6):\n  + Hà Nội: Lô 7 LK 16 B1.1 Khu Đô Thị Thanh Hà, Xã Bình Minh, TP Hà Nội.\n  + Hồ Chí Minh: 132 Lê Tuấn Mậu, Phường 13, Quận 6, TP.HCM.",
-      active: true,
-      updatedAt: "Hôm nay"
-    }
-  ],
+  documents: [],
   conversations: {}
 };
 
+// function loadDB() {
+//   if (!fs.existsSync(DB_FILE)) {
+//     fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf8');
+//   }
+//   return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+// }
+
+// function saveDB(data) {
+//   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+// }
+
 function loadDB() {
+  // Đảm bảo thư mục /app/data luôn tồn tại trên Volume
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+
+  // Nếu file database.json chưa có trong Volume mới tạo file mặc định
   if (!fs.existsSync(DB_FILE)) {
     fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf8');
+    return defaultData;
   }
-  return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+
+  try {
+    const fileContent = fs.readFileSync(DB_FILE, 'utf8');
+    const parsedData = JSON.parse(fileContent);
+    
+    // Đảm bảo không bị thiếu các key mới nếu cấu trúc nâng cấp
+    return { ...defaultData, ...parsedData };
+  } catch (e) {
+    console.error("Lỗi đọc database.json, dùng dữ liệu mặc định:", e);
+    return defaultData;
+  }
 }
 
 function saveDB(data) {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
 
