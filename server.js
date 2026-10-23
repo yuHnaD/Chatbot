@@ -341,7 +341,10 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DB_FILE = path.join(__dirname, 'database.json');
+// const DB_FILE = path.join(__dirname, 'database.json');
+
+const DATA_DIR = process.env.RAILWAY_VOLUME_MOUNT_PATH || __dirname;
+const DB_FILE = path.join(DATA_DIR, 'database.json');
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
