@@ -10,7 +10,7 @@
 <body class="bg-slate-900 text-slate-100 h-screen flex flex-col md:flex-row font-sans overflow-hidden">
 
   <!-- SIDEBAR -->
-  <aside class="w-full md:w-72 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-5 shrink-0">
+  <aside class="w-full md:w-72 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-5 shrink-0 relative">
     <div>
       <div class="flex items-center gap-3 mb-6">
         <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-xl font-bold shadow-lg shadow-blue-600/30">
@@ -23,6 +23,16 @@
           </p>
         </div>
       </div>
+
+      <button
+        id="expandSidebarBtn"
+        onclick="toggleInboxSidebar()"
+        title="Mở hộp thư"
+        aria-label="Mở hộp thư"
+        class="hidden absolute right-3 top-5 z-30 bg-slate-800 hover:bg-slate-700 text-blue-400 w-10 h-10 rounded-xl shadow-xl border border-slate-700 transition items-center justify-center"
+      >
+        <i class="fa-solid fa-angles-right"></i>
+      </button>
 
       <!-- Trạng thái Bot toàn cục -->
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-5">
@@ -75,7 +85,7 @@
     <!-- ========================================================= -->
     <!-- TAB 1: HỘP THƯ LIVE CHAT REALTIME (CÓ TÌM KIẾM & THU GỌN)   -->
     <!-- ========================================================= -->
-    <section id="tab-inbox" class="tab-section flex-1 flex h-full overflow-hidden">
+    <section id="tab-inbox" class="tab-section flex-1 flex h-full overflow-hidden relative">
       
       <!-- Cột trái: Danh sách cuộc trò chuyện (Có thể thu gọn) -->
       <div id="sidebarInbox" class="w-80 md:w-96 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0 transition-all duration-300">
@@ -125,9 +135,9 @@
       <div class="flex-1 flex flex-col bg-slate-950 h-full relative">
         
         <!-- NÚT BẤM HIỆN RA KHI THU GỌN CỘT TRÁI -->
-        <button id="expandSidebarBtn" onclick="toggleInboxSidebar()" title="Mở lại danh sách hộp thư" class="hidden absolute left-3 top-3 z-30 bg-slate-800 hover:bg-slate-700 text-blue-400 p-2.5 rounded-xl shadow-xl border border-slate-700 transition flex items-center gap-2 text-xs font-semibold">
+        <!-- <button id="expandSidebarBtn" onclick="toggleInboxSidebar()" title="Mở lại danh sách hộp thư" class="hidden absolute left-3 top-3 z-30 bg-slate-800 hover:bg-slate-700 text-blue-400 p-2.5 rounded-xl shadow-xl border border-slate-700 transition flex items-center gap-2 text-xs font-semibold">
           <i class="fa-solid fa-angles-right text-sm"></i> <span>Mở hộp thư</span>
-        </button>
+        </button> -->
         
         <!-- Trạng thái chưa chọn khách nào -->
         <div id="emptyChatState" class="flex-1 flex flex-col items-center justify-center text-slate-500 p-8 text-center">
