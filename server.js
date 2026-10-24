@@ -865,11 +865,12 @@ ${knowledgeText}`;
     replyText = data.choices?.[0]?.message?.content || persona.fallback;
   }
 
-  // KHÔNG CẦN QUAN TÂM AI CÓ TRẢ LỜI ĐƯỢC HAY KHÔNG
-  // Chỉ cần câu hỏi của khách hoặc câu trả lời chạm vào tài liệu BẬT BÁO 🔔 ➔ Báo đỏ liền!
+  // 1. AI VẪN TRẢ LỜI KHÁCH BÌNH THƯỜNG (Dùng replyText thu được ở trên)
+
+  // 2. ĐỒNG THỜI KIỂM TRA BÁO ĐỎ:
+  // Nếu đụng tài liệu Bật Báo 🔔 OR AI trả lời câu Fallback ➔ Bật needsAdmin = true
   const isAlertDocTriggered = alertDocs.some(d => {
     const titleMatch = userMessage.toLowerCase().includes(d.title.toLowerCase()) || replyText.toLowerCase().includes(d.title.toLowerCase());
-    // Kiểm tra thêm nếu nội dung câu hỏi chứa các cụm từ trong tài liệu bật báo
     const contentMatch = d.content.toLowerCase().split('\n').some(line => {
       const cleanLine = line.replace(/^[-+*]\s*/, '').trim();
       return cleanLine.length > 6 && userMessage.toLowerCase().includes(cleanLine.toLowerCase());
@@ -877,12 +878,11 @@ ${knowledgeText}`;
     return titleMatch || contentMatch;
   });
 
-  // Kiểm tra nếu AI không biết trả lời (chạy câu fallback)
   const isFallback = replyText.trim().startsWith(persona.fallback.trim()) || replyText.trim() === persona.fallback.trim();
 
-  // BÁO ĐỎ CHO QUẢN TRỊ VIÊN NẾU: Đụng tài liệu Bật Báo OR AI trả lời câu Fallback
   const needsAdmin = isAlertDocTriggered || isFallback;
 
+  // Trả về cả câu trả lời của AI lẫn cờ báo đỏ
   return { reply: replyText, needsAdmin };
 }
 
