@@ -740,6 +740,76 @@ app.post('/api/test-chat', async (req, res) => {
 //   }
 // }
 
+// async function generateAIResponse(userMessage, conversationHistory = []) {
+//   const db = await loadDB();
+//   const { config, persona, documents } = db;
+//   const activeDocs = documents.filter(d => d.active);
+//   const knowledgeText = activeDocs.map((d, idx) => `--- TÀI LIỆU ${idx + 1}: ${d.title} ---\n${d.content}`).join('\n\n');
+
+//   const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty. Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
+// QUY TẮC:
+// 1. Dựa vào LỊCH SỬ TRÒ CHUYỆN bên dưới để nhớ ngữ cảnh khách đang trao đổi.
+// 2. Chỉ dùng thông tin trong [TÀI LIỆU CÔNG TY]. Không tự bịa đặt.
+// 3. Nếu thông tin KHÔNG CÓ trong tài liệu, bạn CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau, KHÔNG ĐƯỢC THÊM BỚT BẤT KỲ TỪ NÀO KHÁC:"${persona.fallback}"
+
+// [TÀI LIỆU CÔNG TY]:
+// ${knowledgeText}`;
+
+//   if (!config.aiApiKey) return { reply: "Chưa cấu hình API Key trên web quản trị!", needsAdmin: false };
+
+//   const recentHistory = conversationHistory.slice(-10);
+
+//   // Lấy danh sách tài liệu Admin đã BẬT QUẢ CHUÔNG (alertAdmin = true)
+//   const alertDocs = activeDocs.filter(d => d.alertAdmin);
+
+//   let replyText = "";
+
+//   if (config.aiProvider === 'gemini') {
+//     const model = config.aiModel || 'gemini-2.5-flash';
+//     const contents = [
+//       ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'model', parts: [{ text: m.text }] })),
+//       { role: 'user', parts: [{ text: userMessage }] }
+//     ];
+
+//     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.aiApiKey.trim()}`, {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ system_instruction: { parts: [{ text: systemInstruction }] }, contents, generationConfig: { temperature: 0.2 } })
+//     });
+//     const data = await res.json();
+//     replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || persona.fallback;
+//   } else {
+//     const model = config.aiModel || 'gpt-4o-mini';
+//     const messages = [
+//       { role: 'system', content: systemInstruction },
+//       ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'assistant', content: m.text })),
+//       { role: 'user', content: userMessage }
+//     ];
+
+//     const res = await fetch('https://api.openai.com/v1/chat/completions', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.aiApiKey.trim()}` },
+//       body: JSON.stringify({ model, messages, temperature: 0.2 })
+//     });
+//     const data = await res.json();
+//     replyText = data.choices?.[0]?.message?.content || persona.fallback;
+//   }
+
+//   // 1. Kiểm tra nếu cuộc trò chuyện liên quan đến tài liệu có BẬT CHUÔNG 🔔
+//   const matchedAlertDoc = alertDocs.find(d => 
+//     userMessage.toLowerCase().includes(d.title.toLowerCase()) || 
+//     replyText.toLowerCase().includes(d.title.toLowerCase())
+//   );
+
+//   // 2. Kiểm tra nếu AI trả lời bằng câu dự phòng (do không biết thông tin)
+//   const isFallback = replyText.trim().startsWith(persona.fallback.trim()) || replyText.trim() === persona.fallback.trim();
+
+//   // Bật cờ báo đỏ nếu dính 1 trong 2 trường hợp trên
+//   const needsAdmin = !!matchedAlertDoc || isFallback;
+
+//   return { reply: replyText, needsAdmin };
+// }
+
 async function generateAIResponse(userMessage, conversationHistory = []) {
   const db = await loadDB();
   const { config, persona, documents } = db;
@@ -750,7 +820,7 @@ async function generateAIResponse(userMessage, conversationHistory = []) {
 QUY TẮC:
 1. Dựa vào LỊCH SỬ TRÒ CHUYỆN bên dưới để nhớ ngữ cảnh khách đang trao đổi.
 2. Chỉ dùng thông tin trong [TÀI LIỆU CÔNG TY]. Không tự bịa đặt.
-3. Nếu thông tin KHÔNG CÓ trong tài liệu, bạn CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau, KHÔNG ĐƯỢC THÊM BỚT BẤT KỲ TỪ NÀO KHÁC:"${persona.fallback}"
+3. Nếu thông tin KHÔNG CÓ trong tài liệu, bạn CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau, KHÔNG ĐƯỢC THÊM BỚT BẤT KỲ TỪ NÀO KHÁC: "${persona.fallback}"
 
 [TÀI LIỆU CÔNG TY]:
 ${knowledgeText}`;
@@ -759,7 +829,7 @@ ${knowledgeText}`;
 
   const recentHistory = conversationHistory.slice(-10);
 
-  // Lấy danh sách tài liệu Admin đã BẬT QUẢ CHUÔNG (alertAdmin = true)
+  // Lấy các tài liệu đã được BẬT CHUÔNG 🔔 (alertAdmin = true)
   const alertDocs = activeDocs.filter(d => d.alertAdmin);
 
   let replyText = "";
@@ -795,17 +865,23 @@ ${knowledgeText}`;
     replyText = data.choices?.[0]?.message?.content || persona.fallback;
   }
 
-  // 1. Kiểm tra nếu cuộc trò chuyện liên quan đến tài liệu có BẬT CHUÔNG 🔔
-  const matchedAlertDoc = alertDocs.find(d => 
-    userMessage.toLowerCase().includes(d.title.toLowerCase()) || 
-    replyText.toLowerCase().includes(d.title.toLowerCase())
-  );
+  // KHÔNG CẦN QUAN TÂM AI CÓ TRẢ LỜI ĐƯỢC HAY KHÔNG
+  // Chỉ cần câu hỏi của khách hoặc câu trả lời chạm vào tài liệu BẬT BÁO 🔔 ➔ Báo đỏ liền!
+  const isAlertDocTriggered = alertDocs.some(d => {
+    const titleMatch = userMessage.toLowerCase().includes(d.title.toLowerCase()) || replyText.toLowerCase().includes(d.title.toLowerCase());
+    // Kiểm tra thêm nếu nội dung câu hỏi chứa các cụm từ trong tài liệu bật báo
+    const contentMatch = d.content.toLowerCase().split('\n').some(line => {
+      const cleanLine = line.replace(/^[-+*]\s*/, '').trim();
+      return cleanLine.length > 6 && userMessage.toLowerCase().includes(cleanLine.toLowerCase());
+    });
+    return titleMatch || contentMatch;
+  });
 
-  // 2. Kiểm tra nếu AI trả lời bằng câu dự phòng (do không biết thông tin)
+  // Kiểm tra nếu AI không biết trả lời (chạy câu fallback)
   const isFallback = replyText.trim().startsWith(persona.fallback.trim()) || replyText.trim() === persona.fallback.trim();
 
-  // Bật cờ báo đỏ nếu dính 1 trong 2 trường hợp trên
-  const needsAdmin = !!matchedAlertDoc || isFallback;
+  // BÁO ĐỎ CHO QUẢN TRỊ VIÊN NẾU: Đụng tài liệu Bật Báo OR AI trả lời câu Fallback
+  const needsAdmin = isAlertDocTriggered || isFallback;
 
   return { reply: replyText, needsAdmin };
 }
