@@ -819,16 +819,20 @@ app.post('/webhook', async (req, res) => {
 
         if (conv.aiEnabled && db.config.botActive) {
           try {
+            // 1. Lưu lại lịch sử cũ trước khi thêm tin nhắn mới của khách
             const historyBeforeNewMessage = [...conv.messages];
 
+            // 2. CHỈ PUSH TIN NHẮN KHÁCH 1 LẦN DUY NHẤT Ở ĐÂY
             conv.messages.push({ sender: 'customer', text, time: timeStr });
             conv.lastMessage = text;
             conv.updatedAt = Date.now();
 
+            // 3. Gọi AI xử lý và truyền lịch sử vào
             const aiResult = await generateAIResponse(text, historyBeforeNewMessage);
 
             await sendFacebookMessage(senderPsid, aiResult.reply, db.config.pageAccessToken);
 
+            // 4. Push câu trả lời của AI vào mảng
             conv.messages.push({ sender: 'ai', text: aiResult.reply, time: timeStr, needsAdmin: aiResult.needsAdmin });
             conv.lastMessage = `AI: ${aiResult.reply}`;
 
