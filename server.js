@@ -504,6 +504,18 @@ function broadcastToAdmins(eventType, payload) {
   });
 }
 
+// Hàm hỗ trợ lấy thời gian định dạng chuẩn giờ Việt Nam (24h)
+function getVietnamTimeString() {
+  const now = new Date();
+  const timeOptions = { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', hour12: false };
+  const dateOptions = { timeZone: 'Asia/Ho_Chi_Minh', day: '2-digit', month: '2-digit', year: 'numeric' };
+  
+  const timeStr = now.toLocaleTimeString('vi-VN', timeOptions);
+  const dateStr = now.toLocaleDateString('vi-VN', dateOptions);
+  
+  return `${timeStr} ${dateStr}`;
+}
+
 // ==========================================
 // API REALTIME STREAM (SSE)
 // ==========================================
@@ -569,7 +581,8 @@ app.post('/api/conversations/reply', async (req, res) => {
       db.conversations[senderId] = { senderId, userName: `Khách ${senderId.slice(-4)}`, userAvatar: '', messages: [], aiEnabled: true, needsAdmin: false };
     }
 
-    const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN');
+    // const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN');
+    const timeStr = getVietnamTimeString();
     db.conversations[senderId].messages.push({ sender: 'admin', text, time: timeStr });
     db.conversations[senderId].lastMessage = `Admin: ${text}`;
     db.conversations[senderId].updatedAt = Date.now();
@@ -684,7 +697,8 @@ app.post('/webhook', async (req, res) => {
       if (event?.message?.text && !event.message.is_echo) {
         const senderPsid = event.sender.id;
         const text = event.message.text;
-        const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN');
+        // const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN');
+        const timeStr = getVietnamTimeString();
 
         if (!db.conversations[senderPsid]) {
           const fbProfile = await getFacebookUserProfile(senderPsid, db.config.pageAccessToken);
