@@ -3,30 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quản trị AI Chatbot Lái Hộ</title>
+  <title>Lái Hộ AI Hub - Quản Trị & Live Chat Realtime</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class'
+      darkMode: 'class',
     }
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
-<body class="bg-slate-900 text-slate-100 h-screen flex flex-col md:flex-row font-sans overflow-hidden">
+<body class="bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-100 h-screen flex flex-col md:flex-row font-sans overflow-hidden transition-colors duration-200">
 
   <!-- SIDEBAR -->
-  <aside class="w-full md:w-72 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-5 shrink-0 relative">
+  <aside class="w-full md:w-72 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between p-5 shrink-0 relative transition-colors duration-200">
     <div>
-      <div class="flex items-center gap-3 mb-6">
-        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-xl font-bold shadow-lg shadow-blue-600/30">
-          <i class="fa-brands fa-facebook-messenger"></i>
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-blue-600/30">
+            <i class="fa-brands fa-facebook-messenger"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-lg leading-tight">Lái Hộ AI Hub</h1>
+            <p class="text-xs text-emerald-500 dark:text-emerald-400 flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-ping"></span> Realtime Live Chat
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 class="font-bold text-lg leading-tight">Chatbot</h1>
-          <p class="text-xs text-emerald-400 flex items-center gap-1">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Realtime Live Chat
-          </p>
-        </div>
+
+        <!-- NÚT CHUYỂN ĐỔI SÁNG / TỐI -->
+        <button onclick="toggleTheme()" title="Chuyển đổi giao diện" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-yellow-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+          <i id="themeIcon" class="fa-solid fa-moon"></i>
+        </button>
       </div>
 
       <button
@@ -34,54 +41,47 @@
         onclick="toggleInboxSidebar()"
         title="Mở hộp thư"
         aria-label="Mở hộp thư"
-        class="hidden absolute right-3 top-5 z-30 bg-slate-800 hover:bg-slate-700 text-blue-400 w-10 h-10 rounded-xl shadow-xl border border-slate-700 transition items-center justify-center"
+        class="hidden absolute right-3 top-5 z-30 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-blue-500 dark:text-blue-400 w-10 h-10 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 transition items-center justify-center"
       >
         <i class="fa-solid fa-angles-right"></i>
       </button>
 
       <!-- Trạng thái Bot toàn cục -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-5">
+      <div class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 mb-5 transition-colors">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">AI Tự Động Toàn Trang</span>
+          <span class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">AI Tự Động Toàn Trang</span>
           <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="botActiveToggle" class="sr-only peer" onchange="saveConnectionConfig()">
-            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+            <div class="w-11 h-6 bg-slate-300 dark:bg-slate-750 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
           </label>
         </div>
-        <div id="botStatusBadge" class="text-sm font-medium text-emerald-400 flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span> Đang trực 24/7
+        <div id="botStatusBadge" class="text-sm font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> Đang trực 24/7
         </div>
       </div>
 
       <!-- Menu điều hướng -->
       <nav class="space-y-1.5">
-        <button onclick="switchTab('tab-inbox')" id="btn-tab-inbox" class="tab-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-left text-sm font-medium bg-blue-600 text-white">
+        <button onclick="switchTab('tab-inbox')" id="btn-tab-inbox" class="tab-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-left text-sm font-medium bg-blue-600 text-white shadow-md shadow-blue-600/20">
           <span class="flex items-center gap-3"><i class="fa-solid fa-inbox w-5"></i> 1. Hộp Thư Live Chat</span>
           <span id="sidebarAlertBadge" class="hidden bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-bounce">0</span>
         </button>
-        <button onclick="switchTab('tab-knowledge')" id="btn-tab-knowledge" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800">
+        <button onclick="switchTab('tab-knowledge')" id="btn-tab-knowledge" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
           <i class="fa-solid fa-book-open w-5"></i> 2. Kho Tài Liệu Laiho
         </button>
-        <button onclick="switchTab('tab-persona')" id="btn-tab-persona" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800">
+        <button onclick="switchTab('tab-persona')" id="btn-tab-persona" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
           <i class="fa-solid fa-user-astronaut w-5"></i> 3. Nhân Cách & Giọng Điệu
         </button>
-        <button onclick="switchTab('tab-connect')" id="btn-tab-connect" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800">
+        <button onclick="switchTab('tab-connect')" id="btn-tab-connect" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
           <i class="fa-solid fa-plug w-5"></i> 4. Kết nối FB & API Key
         </button>
-        <button onclick="switchTab('tab-test')" id="btn-tab-test" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-300 hover:bg-slate-800">
+        <button onclick="switchTab('tab-test')" id="btn-tab-test" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
           <i class="fa-solid fa-flask w-5"></i> 5. Phòng Test Giả Lập
         </button>
       </nav>
     </div>
 
-    <!-- Thêm nút đổi giao diện ở đây -->
-    <div class="px-4 mb-3">
-      <button onclick="toggleDarkMode()" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl text-xs font-semibold transition border border-slate-700">
-        <i class="fa-solid fa-moon" id="themeIcon"></i> <span id="themeText">Giao diện Sáng / Tối</span>
-      </button>
-    </div>
-
-    <div class="pt-4 border-t border-slate-800 text-xs text-slate-400 space-y-1">
+    <div class="pt-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-1">
       <div>🔔 Khi AI không trả lời được, hệ thống sẽ báo đỏ và kêu chuông để Admin vào chat.</div>
     </div>
   </aside>
@@ -95,82 +95,72 @@
     </div>
 
     <!-- ========================================================= -->
-    <!-- TAB 1: HỘP THƯ LIVE CHAT REALTIME (CÓ TÌM KIẾM & THU GỌN)   -->
+    <!-- TAB 1: HỘP THƯ LIVE CHAT REALTIME                           -->
     <!-- ========================================================= -->
     <section id="tab-inbox" class="tab-section flex-1 flex h-full overflow-hidden relative">
       
-      <!-- Cột trái: Danh sách cuộc trò chuyện (Có thể thu gọn) -->
-      <div id="sidebarInbox" class="w-80 md:w-96 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0 transition-all duration-300">
-        <div class="p-4 border-b border-slate-800 space-y-3">
+      <!-- Cột trái: Danh sách cuộc trò chuyện -->
+      <div id="sidebarInbox" class="w-80 md:w-96 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full shrink-0 transition-all duration-300">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 space-y-3">
           <div class="flex items-center justify-between">
             <h2 id="inboxTitle" class="font-bold text-lg truncate">Hộp thư Fanpage</h2>
             <div class="flex items-center gap-2">
-              <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                 ● Realtime
               </span>
-              <!-- Nút thu gọn cột danh sách -->
-              <button onclick="toggleInboxSidebar()" title="Thu gọn danh sách" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800">
+              <button onclick="toggleInboxSidebar()" title="Thu gọn danh sách" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                 <i class="fa-solid fa-angles-left" id="toggleIcon"></i>
               </button>
             </div>
           </div>
 
-          <!-- THANH TÌM KIẾM KHÁCH HÀNG -->
+          <!-- THANH TÌM KIẾM -->
           <div class="relative">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-xs text-slate-500"></i>
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-xs text-slate-400"></i>
             <input 
               type="text" 
               id="searchCustomerInput" 
               oninput="renderConversationList()" 
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-slate-200" 
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-slate-800 dark:text-slate-200" 
               placeholder="Tìm kiếm theo tên hoặc ID khách..." 
             />
           </div>
 
-          <!-- Bộ lọc Tất cả / Cần Admin hỗ trợ -->
-          <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-medium">
-            <button onclick="setInboxFilter('all')" id="filter-all" class="py-1.5 rounded-lg bg-blue-600 text-white">
+          <!-- Bộ lọc -->
+          <div class="grid grid-cols-2 gap-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-medium">
+            <button onclick="setInboxFilter('all')" id="filter-all" class="py-1.5 rounded-lg bg-blue-600 text-white shadow">
               Tất cả hội thoại
             </button>
-            <button onclick="setInboxFilter('needsAdmin')" id="filter-needsAdmin" class="py-1.5 rounded-lg text-slate-400 hover:text-white flex items-center justify-center gap-1">
+            <button onclick="setInboxFilter('needsAdmin')" id="filter-needsAdmin" class="py-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center gap-1">
               <span>⚠️ Cần hỗ trợ</span>
               <span id="filterAlertCount" class="bg-rose-500 text-white px-1.5 py-0.2 rounded-full text-[10px]">0</span>
             </button>
           </div>
         </div>
 
-        <!-- Danh sách khách hàng -->
-        <div id="conversationList" class="flex-1 overflow-y-auto divide-y divide-slate-800/60"></div>
+        <div id="conversationList" class="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60"></div>
       </div>
 
-     <!-- Cột phải: Khung chat chi tiết với khách hàng -->
-      <div class="flex-1 flex flex-col bg-slate-950 h-full relative">
+      <!-- Cột phải: Khung chat chi tiết -->
+      <div class="flex-1 flex flex-col bg-slate-50 dark:bg-slate-950 h-full relative">
         
-        <!-- NÚT BẤM HIỆN RA KHI THU GỌN CỘT TRÁI -->
-        <!-- <button id="expandSidebarBtn" onclick="toggleInboxSidebar()" title="Mở lại danh sách hộp thư" class="hidden absolute left-3 top-3 z-30 bg-slate-800 hover:bg-slate-700 text-blue-400 p-2.5 rounded-xl shadow-xl border border-slate-700 transition flex items-center gap-2 text-xs font-semibold">
-          <i class="fa-solid fa-angles-right text-sm"></i> <span>Mở hộp thư</span>
-        </button> -->
-        
-        <!-- Trạng thái chưa chọn khách nào -->
-        <div id="emptyChatState" class="flex-1 flex flex-col items-center justify-center text-slate-500 p-8 text-center">
-          <div class="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-2xl mb-3 text-blue-400">
+        <div id="emptyChatState" class="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center">
+          <div class="w-16 h-16 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-2xl mb-3 text-blue-500 dark:text-blue-400 shadow-sm">
             <i class="fa-brands fa-facebook-messenger"></i>
           </div>
-          <p class="font-medium text-slate-300">Chọn một cuộc hội thoại bên trái để xem hoặc trả lời khách</p>
+          <p class="font-medium text-slate-700 dark:text-slate-300">Chọn một cuộc hội thoại bên trái để xem hoặc trả lời khách</p>
           <p class="text-xs max-w-md mt-1">Mọi tin nhắn của khách trên Fanpage Lái Hộ và câu trả lời của AI đều hiển thị trực tiếp theo thời gian thực tại đây.</p>
         </div>
 
-        <!-- Khung hội thoại đang mở -->
         <div id="activeChatPanel" class="hidden flex-1 flex flex-col h-full">
           
-          <!-- Header cuộc trò chuyện -->
-          <div class="px-6 py-3.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+          <div class="px-6 py-3.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div id="activeUserAvatar" class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm">KH</div>
+              <div id="activeUserAvatar" class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm text-white">KH</div>
               <div>
                 <div class="flex items-center gap-2">
                   <h3 id="activeUserName" class="font-bold text-base">Tên khách hàng</h3>
-                  <span id="activeNeedsAdminBadge" class="hidden text-xs bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2.5 py-0.5 rounded-full font-semibold animate-pulse">
+                  <span id="activeNeedsAdminBadge" class="hidden text-xs bg-rose-500/20 text-rose-500 dark:text-rose-400 border border-rose-500/30 px-2.5 py-0.5 rounded-full font-semibold animate-pulse">
                     ⚠️ AI không trả lời được - Cần Admin hỗ trợ
                   </span>
                 </div>
@@ -178,36 +168,33 @@
               </div>
             </div>
 
-            <!-- Nút điều khiển AI cho riêng khách này -->
             <div class="flex items-center gap-3">
               <button id="btnResolveAlert" onclick="resolveAdminAlert()" class="hidden text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl font-medium">
                 <i class="fa-solid fa-check mr-1"></i> Đã hỗ trợ xong (Bật lại AI)
               </button>
 
-              <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl">
-                <span class="text-xs text-slate-300">AI tự trả lời khách này:</span>
+              <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl">
+                <span class="text-xs text-slate-600 dark:text-slate-300">AI tự trả lời khách này:</span>
                 <label class="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" id="userAiToggle" class="sr-only peer" onchange="toggleUserAI()">
-                  <div class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div class="w-9 h-5 bg-slate-300 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
               </div>
             </div>
           </div>
 
-          <!-- Danh sách bong bóng tin nhắn -->
           <div id="activeMessageList" class="flex-1 p-6 overflow-y-auto space-y-4"></div>
 
-          <!-- Ô nhập tin nhắn dành cho Admin -->
-          <div class="p-4 bg-slate-900 border-t border-slate-800">
+          <div class="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
             <div class="flex gap-3">
               <input
                 type="text"
                 id="adminReplyInput"
                 onkeypress="if(event.key==='Enter') sendAdminReply()"
-                class="flex-1 bg-slate-950 border border-slate-700 focus:border-blue-500 focus:outline-none rounded-xl px-4 py-3 text-sm"
-                placeholder="Nhập tin nhắn trả lời trực tiếp khách hàng trên Messenger (Khi bạn nhắn sẽ gửi thẳng về FB của khách)..."
+                class="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:outline-none rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-100"
+                placeholder="Nhập tin nhắn trả lời trực tiếp khách hàng trên Messenger..."
               />
-              <button onclick="sendAdminReply()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-xl font-semibold text-sm flex items-center gap-2 shrink-0">
+              <button onclick="sendAdminReply()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-xl font-semibold text-sm flex items-center gap-2 shrink-0 shadow">
                 <i class="fa-solid fa-paper-plane"></i> Gửi cho khách
               </button>
             </div>
@@ -225,14 +212,14 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-bold">2. Kho Tài Liệu Lái Hộ (Huấn luyện AI)</h2>
-            <p class="text-slate-400 text-sm mt-1">Chỉnh sửa hoặc bổ sung bảng giá, chính sách tài xế ngay trên web.</p>
+            <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Chỉnh sửa hoặc bổ sung bảng giá, chính sách tài xế ngay trên web.</p>
           </div>
           <div class="flex gap-3">
-            <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2">
-              <i class="fa-solid fa-file-arrow-up text-blue-400"></i> Tải file (.txt)
+            <label class="cursor-pointer bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 shadow-sm">
+              <i class="fa-solid fa-file-arrow-up text-blue-500 dark:text-blue-400"></i> Tải file (.txt)
               <input type="file" id="fileUploadInput" accept=".txt,.csv,.md" class="hidden" onchange="handleFileUpload(event)" />
             </label>
-            <button onclick="openDocModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2">
+            <button onclick="openDocModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 shadow">
               <i class="fa-solid fa-plus"></i> Viết tài liệu mới
             </button>
           </div>
@@ -247,15 +234,15 @@
     <section id="tab-persona" class="tab-section hidden flex-1 p-6 md:p-10 overflow-y-auto">
       <div class="max-w-3xl space-y-6">
         <h2 class="text-2xl font-bold">3. Thiết lập Nhân cách & Câu báo bận chuyển Admin</h2>
-        <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-4">
+        <div class="bg-white dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 space-y-4 shadow-sm">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="text-sm font-medium block mb-1">Tên nhân viên AI</label>
-              <input type="text" id="botName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
+              <input type="text" id="botName" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100" />
             </div>
             <div>
               <label class="text-sm font-medium block mb-1">Cách xưng hô</label>
-              <select id="pronoun" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm">
+              <select id="pronoun" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100">
                 <option value="Em - Anh/Chị">Em - Anh/Chị</option>
                 <option value="Mình - Bạn">Mình - Bạn</option>
               </select>
@@ -263,13 +250,13 @@
           </div>
           <div>
             <label class="text-sm font-medium block mb-1">Phong cách giao tiếp</label>
-            <input type="text" id="tone" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
+            <input type="text" id="tone" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100" />
           </div>
           <div>
-            <label class="text-sm font-medium block mb-1">Câu trả lời tự động khi AI không biết (Đồng thời hệ thống sẽ báo đỏ cho Admin)</label>
-            <textarea id="fallback" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm"></textarea>
+            <label class="text-sm font-medium block mb-1">Câu trả lời tự động khi AI không biết</label>
+            <textarea id="fallback" rows="3" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100"></textarea>
           </div>
-          <button onclick="savePersonaConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
+          <button onclick="savePersonaConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 shadow">
             <i class="fa-solid fa-floppy-disk"></i> Lưu Nhân Cách AI
           </button>
         </div>
@@ -283,37 +270,37 @@
       <div class="max-w-4xl space-y-6">
         <div>
           <h2 class="text-2xl font-bold">4. Cấu hình Kết nối Facebook & AI API Key</h2>
-          <p class="text-slate-400 text-sm mt-1">Điền mã Token từ Meta for Developers để bot trực Fanpage Lái Hộ.</p>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Điền mã Token từ Meta for Developers để bot trực Fanpage Lái Hộ.</p>
         </div>
 
-        <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-4">
-          <h3 class="font-semibold text-blue-400 flex items-center gap-2">
+        <div class="bg-white dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 space-y-4 shadow-sm">
+          <h3 class="font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-2">
             <i class="fa-solid fa-link"></i> Thông tin gắn vào Webhook trên Meta for Developers
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="text-xs text-slate-400 block mb-1">Callback URL (Webhook)</label>
+              <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Callback URL (Webhook)</label>
               <div class="flex">
-                <input type="text" id="webhookUrlDisplay" readonly class="w-full bg-slate-900 border border-slate-700 rounded-l-xl px-3 py-2.5 text-sm text-emerald-400 font-mono" />
-                <button onclick="copyWebhookUrl()" class="bg-slate-700 hover:bg-slate-600 px-4 rounded-r-xl text-sm font-medium">Copy</button>
+                <input type="text" id="webhookUrlDisplay" readonly class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-l-xl px-3 py-2.5 text-sm text-emerald-600 dark:text-emerald-400 font-mono" />
+                <button onclick="copyWebhookUrl()" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-4 rounded-r-xl text-sm font-medium">Copy</button>
               </div>
             </div>
             <div>
-              <label class="text-xs text-slate-400 block mb-1">Verify Token</label>
-              <input type="text" id="verifyToken" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm font-mono" />
+              <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Verify Token</label>
+              <input type="text" id="verifyToken" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-mono text-slate-800 dark:text-slate-100" />
             </div>
           </div>
         </div>
 
-        <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-5">
+        <div class="bg-white dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 space-y-5 shadow-sm">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="text-sm font-medium block mb-1">Tên Fanpage</label>
-              <input type="text" id="pageName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
+              <input type="text" id="pageName" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100" />
             </div>
             <div>
               <label class="text-sm font-medium block mb-1">Nền tảng AI</label>
-              <select id="aiProvider" onchange="updateDefaultModel()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm">
+              <select id="aiProvider" onchange="updateDefaultModel()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100">
                 <option value="gemini">Google Gemini (Khuyên dùng)</option>
                 <option value="openai">OpenAI (ChatGPT)</option>
               </select>
@@ -321,22 +308,22 @@
           </div>
 
           <div>
-            <label class="text-sm font-medium block mb-1">Facebook Page Access Token <span class="text-rose-400">*</span></label>
-            <input type="password" id="pageAccessToken" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" placeholder="EAA..." />
+            <label class="text-sm font-medium block mb-1">Facebook Page Access Token <span class="text-rose-500">*</span></label>
+            <input type="password" id="pageAccessToken" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-800 dark:text-slate-100" placeholder="EAA..." />
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-2">
-              <label class="text-sm font-medium block mb-1">AI API Key <span class="text-rose-400">*</span></label>
-              <input type="password" id="aiApiKey" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" placeholder="AIzaSy..." />
+              <label class="text-sm font-medium block mb-1">AI API Key <span class="text-rose-500">*</span></label>
+              <input type="password" id="aiApiKey" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-800 dark:text-slate-100" placeholder="AIzaSy..." />
             </div>
             <div>
               <label class="text-sm font-medium block mb-1">Tên Model AI</label>
-              <input type="text" id="aiModel" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono" />
+              <input type="text" id="aiModel" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-800 dark:text-slate-100" />
             </div>
           </div>
 
-          <button onclick="saveConnectionConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
+          <button onclick="saveConnectionConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 shadow">
             <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình Kết Nối
           </button>
         </div>
@@ -347,21 +334,21 @@
     <!-- TAB 5: PHÒNG TEST GIẢ LẬP                                  -->
     <!-- ========================================================= -->
     <section id="tab-test" class="tab-section hidden flex-1 p-6 md:p-10 overflow-y-auto">
-      <div class="max-w-2xl mx-auto bg-slate-800/70 border border-slate-700 rounded-2xl flex flex-col h-[560px]">
-        <div class="p-4 border-b border-slate-700 flex items-center justify-between">
+      <div class="max-w-2xl mx-auto bg-white dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col h-[560px] shadow-sm">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
           <div>
             <h3 class="font-semibold text-sm">Giả lập Khách hàng nhắn tin</h3>
-            <p class="text-xs text-slate-400">Thử hỏi 1 câu ngoài tài liệu để xem hệ thống báo động đỏ bên tab "1. Hộp Thư Live Chat"</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Thử hỏi 1 câu ngoài tài liệu để xem hệ thống báo động đỏ bên tab hộp thư</p>
           </div>
         </div>
         <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm">
-          <div class="bg-slate-700/70 text-slate-200 p-3 rounded-2xl rounded-tl-none max-w-[85%]">
-            Xin chào! Hãy hỏi thử về giá cước Lái Hộ, hoặc thử hỏi một câu không có trong tài liệu (VD: "Hôm nay thời tiết thế nào?") để kiểm tra tính năng gọi Admin nhé!
+          <div class="bg-slate-100 dark:bg-slate-700/70 text-slate-800 dark:text-slate-200 p-3 rounded-2xl rounded-tl-none max-w-[85%]">
+            Xin chào! Hãy hỏi thử về giá cước Lái Hộ, hoặc thử hỏi một câu ngoài tài liệu để kiểm tra tính năng gọi Admin nhé!
           </div>
         </div>
-        <div class="p-3 border-t border-slate-700 flex gap-2">
-          <input type="text" id="testChatInput" onkeypress="if(event.key==='Enter') sendTestMessage()" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="Đóng vai khách hàng nhắn tin..." />
-          <button onclick="sendTestMessage()" class="bg-blue-600 hover:bg-blue-500 px-5 rounded-xl font-medium text-sm">Gửi</button>
+        <div class="p-3 border-t border-slate-200 dark:border-slate-700 flex gap-2">
+          <input type="text" id="testChatInput" onkeypress="if(event.key==='Enter') sendTestMessage()" class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100" placeholder="Đóng vai khách hàng nhắn tin..." />
+          <button onclick="sendTestMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 rounded-xl font-medium text-sm shadow">Gửi</button>
         </div>
       </div>
     </section>
@@ -370,20 +357,20 @@
 
   <!-- MODAL TÀI LIỆU -->
   <div id="docModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-xl w-full p-6 space-y-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl">
       <h3 id="modalTitle" class="text-lg font-bold">Thêm tài liệu huấn luyện</h3>
       <input type="hidden" id="editDocId" />
       <div>
-        <label class="text-xs text-slate-400 block mb-1">Tiêu đề</label>
-        <input type="text" id="docTitleInput" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" />
+        <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Tiêu đề</label>
+        <input type="text" id="docTitleInput" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100" />
       </div>
       <div>
-        <label class="text-xs text-slate-400 block mb-1">Nội dung chi tiết</label>
-        <textarea id="docContentInput" rows="7" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm"></textarea>
+        <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Nội dung chi tiết</label>
+        <textarea id="docContentInput" rows="7" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100"></textarea>
       </div>
       <div class="flex justify-end gap-3 pt-2">
-        <button onclick="closeDocModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm">Hủy</button>
-        <button onclick="saveDocument()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-semibold">Lưu</button>
+        <button onclick="closeDocModal()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-sm">Hủy</button>
+        <button onclick="saveDocument()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold shadow">Lưu</button>
       </div>
     </div>
   </div>
@@ -394,6 +381,36 @@
     let currentFilter = 'all';
 
     document.getElementById('webhookUrlDisplay').value = window.location.origin + '/webhook';
+
+    // --- TÍNH NĂNG DARK/LIGHT MODE & LOCALSTORAGE ---
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      const icon = document.getElementById('themeIcon');
+      if (savedTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+        icon.className = "fa-solid fa-sun";
+      } else {
+        document.documentElement.classList.add('dark');
+        icon.className = "fa-solid fa-moon";
+      }
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const icon = document.getElementById('themeIcon');
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+        icon.className = "fa-solid fa-sun";
+      } else {
+        html.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+        icon.className = "fa-solid fa-moon";
+      }
+    }
+
+    // Chạy kích hoạt theme ngay khi load trang
+    initTheme();
 
     // Phát âm thanh chuông báo khi có khách cần Admin hỗ trợ
     function playNotificationSound(isUrgent = false) {
@@ -422,17 +439,14 @@
       document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
       document.getElementById(tabId).classList.remove('hidden');
       document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('bg-blue-600', 'text-white');
-        btn.classList.add('text-slate-300', 'hover:bg-slate-800');
+        btn.classList.remove('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-600/20');
+        btn.classList.add('text-slate-600', 'dark:text-slate-300', 'hover:bg-slate-100', 'dark:hover:bg-slate-800');
       });
       const activeBtn = document.getElementById('btn-' + tabId);
-      activeBtn.classList.add('bg-blue-600', 'text-white');
-      activeBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+      activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-600/20');
+      activeBtn.classList.remove('text-slate-600', 'dark:text-slate-300', 'hover:bg-slate-100', 'dark:hover:bg-slate-800');
     }
 
-    // ==========================================
-    // KẾT NỐI REALTIME STREAM VỚI SERVER
-    // ==========================================
     function connectRealtimeStream() {
       const evtSource = new EventSource('/api/stream');
       evtSource.onmessage = function(event) {
@@ -456,30 +470,35 @@
       };
     }
 
-    // ==========================================
-    // QUẢN LÝ HỘP THƯ LIVE CHAT (INBOX)
-    // ==========================================
     function setInboxFilter(filter) {
       currentFilter = filter;
       document.getElementById('filter-all').className = filter === 'all'
-        ? "py-1.5 rounded-lg bg-blue-600 text-white"
-        : "py-1.5 rounded-lg text-slate-400 hover:text-white";
+        ? "py-1.5 rounded-lg bg-blue-600 text-white shadow"
+        : "py-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
       document.getElementById('filter-needsAdmin').className = filter === 'needsAdmin'
-        ? "py-1.5 rounded-lg bg-rose-600 text-white flex items-center justify-center gap-1"
-        : "py-1.5 rounded-lg text-slate-400 hover:text-white flex items-center justify-center gap-1";
+        ? "py-1.5 rounded-lg bg-rose-600 text-white flex items-center justify-center gap-1 shadow"
+        : "py-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center gap-1";
       renderConversationList();
     }
 
     function renderConversationList() {
       const listEl = document.getElementById('conversationList');
+      const searchText = document.getElementById('searchCustomerInput').value.toLowerCase().trim();
       const convArray = Object.values(appData.conversations || {}).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
-      // Đếm số lượng cuộc trò chuyện cần Admin hỗ trợ
+      let filtered = currentFilter === 'needsAdmin' ? convArray.filter(c => c.needsAdmin) : convArray;
+      
+      if (searchText) {
+        filtered = filtered.filter(c => 
+          (c.userName && c.userName.toLowerCase().includes(searchText)) || 
+          (c.senderId && c.senderId.includes(searchText))
+        );
+      }
+
       const alertCount = convArray.filter(c => c.needsAdmin).length;
       const sidebarBadge = document.getElementById('sidebarAlertBadge');
       const filterAlertCount = document.getElementById('filterAlertCount');
       filterAlertCount.innerText = alertCount;
-
       if (alertCount > 0) {
         sidebarBadge.innerText = alertCount;
         sidebarBadge.classList.remove('hidden');
@@ -487,10 +506,8 @@
         sidebarBadge.classList.add('hidden');
       }
 
-      const filtered = currentFilter === 'needsAdmin' ? convArray.filter(c => c.needsAdmin) : convArray;
-
       if (filtered.length === 0) {
-        listEl.innerHTML = `<div class="p-8 text-center text-slate-500 text-sm">Chưa có cuộc hội thoại nào.</div>`;
+        listEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm">Không tìm thấy cuộc hội thoại phù hợp.</div>`;
         return;
       }
 
@@ -498,23 +515,22 @@
         const isSelected = conv.senderId === selectedSenderId;
         const initials = (conv.userName || 'KH').slice(0, 2).toUpperCase();
         
-        // Kiểm tra nếu có avatar từ Facebook thì hiển thị ảnh, nếu không thì hiển thị chữ cái đầu
         const avatarHtml = conv.userAvatar 
-          ? `<img src="${conv.userAvatar}" class="w-11 h-11 rounded-full object-cover shrink-0 border border-slate-700">`
-          : `<div class="w-11 h-11 rounded-full bg-blue-600/30 border border-blue-500/30 flex items-center justify-center font-bold text-blue-300 shrink-0">${initials}</div>`;
+          ? `<img src="${conv.userAvatar}" class="w-11 h-11 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700">`
+          : `<div class="w-11 h-11 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center font-bold text-blue-600 dark:text-blue-300 shrink-0">${initials}</div>`;
 
         return `
-          <div onclick="selectConversation('${conv.senderId}')" class="p-3.5 cursor-pointer transition flex items-start gap-3 ${isSelected ? 'bg-slate-800' : 'hover:bg-slate-900/60'} ${conv.needsAdmin ? 'border-l-4 border-rose-500 bg-rose-950/20' : ''}">
+          <div onclick="selectConversation('${conv.senderId}')" class="p-3.5 cursor-pointer transition flex items-start gap-3 ${isSelected ? 'bg-slate-100 dark:bg-slate-800' : 'hover:bg-slate-50 dark:hover:bg-slate-900/60'} ${conv.needsAdmin ? 'border-l-4 border-rose-500 bg-rose-50 dark:bg-rose-950/20' : ''}">
             ${avatarHtml}
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-1">
-                <h4 class="font-semibold text-sm truncate">${conv.userName}</h4>
+                <h4 class="font-semibold text-sm truncate text-slate-800 dark:text-slate-200">${conv.userName}</h4>
                 ${conv.needsAdmin
                   ? `<span class="text-[10px] bg-rose-500 text-white px-2 py-0.5 rounded-full font-bold shrink-0">Cần Admin</span>`
-                  : `<span class="text-[10px] ${conv.aiEnabled ? 'text-emerald-400' : 'text-amber-400'} shrink-0">${conv.aiEnabled ? '🤖 AI bật' : '👤 Tắt AI'}</span>`
+                  : `<span class="text-[10px] ${conv.aiEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500 dark:text-amber-400'} shrink-0">${conv.aiEnabled ? '🤖 AI' : '👤 Tắt'}</span>`
                 }
               </div>
-              <p class="text-xs text-slate-400 truncate mt-1">${conv.lastMessage || ''}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-1">${conv.lastMessage || ''}</p>
             </div>
           </div>
         `;
@@ -532,7 +548,6 @@
       renderConversationList();
       renderActiveChat(conv);
 
-      // Đánh dấu đã đọc
       await fetch('/api/conversations/status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -543,11 +558,10 @@
     function renderActiveChat(conv) {
       document.getElementById('activeUserName').innerText = conv.userName;
       document.getElementById('activeUserId').innerText = `ID: ${conv.senderId}`;
-      // document.getElementById('activeUserAvatar').innerText = (conv.userName || 'KH').slice(0, 2).toUpperCase();
-      // SỬA ĐOẠN NÀY ĐỂ HIỂN THỊ ĐÚNG ẢNH AVATAR THẬT TỪ FACEBOOK
+      
       const avatarContainer = document.getElementById('activeUserAvatar');
       if (conv.userAvatar) {
-        avatarContainer.innerHTML = `<img src="${conv.userAvatar}" class="w-10 h-10 rounded-full object-cover border border-slate-700">`;
+        avatarContainer.innerHTML = `<img src="${conv.userAvatar}" class="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700">`;
         avatarContainer.className = "w-10 h-10 rounded-full shrink-0 overflow-hidden";
       } else {
         const initials = (conv.userName || 'KH').slice(0, 2).toUpperCase();
@@ -572,20 +586,20 @@
           return `
             <div class="flex flex-col items-start">
               <span class="text-[11px] text-slate-400 mb-1 ml-1">${conv.userName} • ${m.time}</span>
-              <div class="bg-slate-800 border border-slate-700 text-slate-100 px-4 py-2.5 rounded-2xl rounded-tl-none max-w-[75%] text-sm whitespace-pre-line">${m.text}</div>
+              <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 px-4 py-2.5 rounded-2xl rounded-tl-none max-w-[75%] text-sm whitespace-pre-line shadow-sm">${m.text}</div>
             </div>
           `;
         } else if (m.sender === 'ai') {
           return `
             <div class="flex flex-col items-end">
-              <span class="text-[11px] text-emerald-400 mb-1 mr-1"><i class="fa-solid fa-robot"></i> AI trả lời • ${m.time}</span>
-              <div class="bg-emerald-950/60 border ${m.needsAdmin ? 'border-rose-500' : 'border-emerald-700/50'} text-slate-100 px-4 py-2.5 rounded-2xl rounded-tr-none max-w-[75%] text-sm whitespace-pre-line">${m.text}</div>
+              <span class="text-[11px] text-emerald-600 dark:text-emerald-400 mb-1 mr-1"><i class="fa-solid fa-robot"></i> AI trả lời • ${m.time}</span>
+              <div class="bg-emerald-50 dark:bg-emerald-950/60 border ${m.needsAdmin ? 'border-rose-500' : 'border-emerald-200 dark:border-emerald-700/50'} text-slate-800 dark:text-slate-100 px-4 py-2.5 rounded-2xl rounded-tr-none max-w-[75%] text-sm whitespace-pre-line shadow-sm">${m.text}</div>
             </div>
           `;
         } else {
           return `
             <div class="flex flex-col items-end">
-              <span class="text-[11px] text-blue-400 mb-1 mr-1"><i class="fa-solid fa-user-shield"></i> Quản trị viên • ${m.time}</span>
+              <span class="text-[11px] text-blue-600 dark:text-blue-400 mb-1 mr-1"><i class="fa-solid fa-user-shield"></i> Quản trị viên • ${m.time}</span>
               <div class="bg-blue-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-none max-w-[75%] text-sm whitespace-pre-line shadow">${m.text}</div>
             </div>
           `;
@@ -639,9 +653,6 @@
       showToast("Đã đánh dấu hoàn tất hỗ trợ & Bật lại AI!");
     }
 
-    // ==========================================
-    // CÁC HÀM CẤU HÌNH & TÀI LIỆU
-    // ==========================================
     function updateDefaultModel() {
       const provider = document.getElementById('aiProvider').value;
       document.getElementById('aiModel').value = provider === 'gemini' ? 'gemini-2.5-flash' : 'gpt-4o-mini';
@@ -675,8 +686,8 @@
 
     function updateBotBadge(isActive) {
       const badge = document.getElementById('botStatusBadge');
-      badge.className = `text-sm font-medium ${isActive ? 'text-emerald-400' : 'text-amber-400'} flex items-center gap-2`;
-      badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full ${isActive ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}"></span> ${isActive ? 'Đang trực 24/7' : 'Đang tạm dừng'}`;
+      badge.className = `text-sm font-medium ${isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500 dark:text-amber-400'} flex items-center gap-2`;
+      badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full ${isActive ? 'bg-emerald-500 dark:bg-emerald-400 animate-pulse' : 'bg-amber-500'}"></span> ${isActive ? 'Đang trực 24/7' : 'Đang tạm dừng'}`;
     }
 
     async function saveConnectionConfig() {
@@ -708,24 +719,24 @@
     function renderDocuments() {
       const container = document.getElementById('documentsList');
       if (!appData.documents || appData.documents.length === 0) {
-        container.innerHTML = `<div class="col-span-2 text-center py-12 text-slate-500">Chưa có tài liệu.</div>`;
+        container.innerHTML = `<div class="col-span-2 text-center py-12 text-slate-400">Chưa có tài liệu.</div>`;
         return;
       }
       container.innerHTML = appData.documents.map(doc => `
-        <div class="bg-slate-800/80 border ${doc.active ? 'border-slate-700' : 'border-slate-800 opacity-60'} rounded-2xl p-5 flex flex-col justify-between">
+        <div class="bg-white dark:bg-slate-800/80 border ${doc.active ? 'border-slate-200 dark:border-slate-700' : 'border-slate-200 dark:border-slate-800 opacity-60'} rounded-2xl p-5 flex flex-col justify-between shadow-sm">
           <div>
             <div class="flex items-start justify-between gap-2 mb-2">
-              <h4 class="font-bold text-base text-blue-400">${doc.title}</h4>
-              <span class="text-xs px-2.5 py-1 rounded-full ${doc.active ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'}">${doc.active ? 'Đang dùng' : 'Đã tắt'}</span>
+              <h4 class="font-bold text-base text-blue-600 dark:text-blue-400">${doc.title}</h4>
+              <span class="text-xs px-2.5 py-1 rounded-full ${doc.active ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}">${doc.active ? 'Đang dùng' : 'Đã tắt'}</span>
             </div>
-            <p class="text-sm text-slate-300 whitespace-pre-line line-clamp-4 mb-4">${doc.content}</p>
+            <p class="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-line line-clamp-4 mb-4">${doc.content}</p>
           </div>
-          <div class="flex items-center justify-between pt-3 border-t border-slate-700/60 text-xs text-slate-400">
+          <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700/60 text-xs text-slate-400">
             <span>Cập nhật: ${doc.updatedAt}</span>
             <div class="flex items-center gap-2">
-              <button onclick="toggleDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-white">${doc.active ? 'Tắt' : 'Bật'}</button>
-              <button onclick="editDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white">Sửa</button>
-              <button onclick="deleteDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white">Xóa</button>
+              <button onclick="toggleDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white">${doc.active ? 'Tắt' : 'Bật'}</button>
+              <button onclick="editDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-600/30 hover:bg-blue-100 dark:hover:bg-blue-600 text-blue-600 dark:text-blue-300">Sửa</button>
+              <button onclick="deleteDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-600/30 hover:bg-rose-100 dark:hover:bg-rose-600 text-rose-600 dark:text-rose-300">Xóa</button>
             </div>
           </div>
         </div>
@@ -807,17 +818,16 @@
       const text = input.value.trim();
       if (!text) return;
       const chatBox = document.getElementById('chatMessages');
-      chatBox.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none max-w-[85%]">${text}</div></div>`;
+      chatBox.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none max-w-[85%] shadow">${text}</div></div>`;
       input.value = '';
       chatBox.scrollTop = chatBox.scrollHeight;
 
       const res = await fetch('/api/test-chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
       const data = await res.json();
-      chatBox.innerHTML += `<div class="flex justify-start"><div class="bg-slate-700/80 border ${data.needsAdmin ? 'border-rose-500' : 'border-transparent'} text-slate-100 p-3 rounded-2xl rounded-tl-none max-w-[85%] whitespace-pre-line">${data.reply}</div></div>`;
+      chatBox.innerHTML += `<div class="flex justify-start"><div class="bg-slate-100 dark:bg-slate-700/80 border ${data.needsAdmin ? 'border-rose-500' : 'border-slate-200 dark:border-transparent'} text-slate-800 dark:text-slate-100 p-3 rounded-2xl rounded-tl-none max-w-[85%] whitespace-pre-line shadow-sm">${data.reply}</div></div>`;
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // --- TÍNH NĂNG THU GỌN / MỞ RỘNG CỘT HỘP THƯ (ĐÃ SỬA CÓ NÚT SHOW RA) ---
     let isInboxCollapsed = false;
     function toggleInboxSidebar() {
       isInboxCollapsed = !isInboxCollapsed;
@@ -826,129 +836,15 @@
       const toggleIcon = document.getElementById('toggleIcon');
       
       if (isInboxCollapsed) {
-        // Thu gọn cột trái
         sidebar.classList.add('w-0', 'overflow-hidden', 'p-0', 'border-none');
         sidebar.classList.remove('w-80', 'md:w-96');
-        // Hiện nút mũi tên trôi nổi để mở ra
         expandBtn.classList.remove('hidden');
         toggleIcon.className = "fa-solid fa-angles-right";
       } else {
-        // Mở rộng cột trái
         sidebar.classList.remove('w-0', 'overflow-hidden', 'p-0', 'border-none');
         sidebar.classList.add('w-80', 'md:w-96');
-        // Ẩn nút mũi tên trôi nổi
         expandBtn.classList.add('hidden');
         toggleIcon.className = "fa-solid fa-angles-left";
-      }
-    }
-
-    // --- TÍNH NĂNG 2: TÌM KIẾM KHÁCH HÀNG (CẬP NHẬT TRONG RENDER) ---
-    function renderConversationList() {
-      const listEl = document.getElementById('conversationList');
-      const searchText = document.getElementById('searchCustomerInput').value.toLowerCase().trim();
-      const convArray = Object.values(appData.conversations || {}).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-
-      // Lọc theo bộ lọc (Tất cả / Cần hỗ trợ) VÀ Thanh tìm kiếm
-      let filtered = currentFilter === 'needsAdmin' ? convArray.filter(c => c.needsAdmin) : convArray;
-      
-      if (searchText) {
-        filtered = filtered.filter(c => 
-          (c.userName && c.userName.toLowerCase().includes(searchText)) || 
-          (c.senderId && c.senderId.includes(searchText))
-        );
-      }
-
-      // Đếm số lượng cần hỗ trợ hiển thị badge
-      const alertCount = convArray.filter(c => c.needsAdmin).length;
-      const sidebarBadge = document.getElementById('sidebarAlertBadge');
-      const filterAlertCount = document.getElementById('filterAlertCount');
-      filterAlertCount.innerText = alertCount;
-      if (alertCount > 0) {
-        sidebarBadge.innerText = alertCount;
-        sidebarBadge.classList.remove('hidden');
-      } else {
-        sidebarBadge.classList.add('hidden');
-      }
-
-      if (filtered.length === 0) {
-        listEl.innerHTML = `<div class="p-8 text-center text-slate-500 text-sm">Không tìm thấy cuộc hội thoại phù hợp.</div>`;
-        return;
-      }
-
-      listEl.innerHTML = filtered.map(conv => {
-        const isSelected = conv.senderId === selectedSenderId;
-        const initials = (conv.userName || 'KH').slice(0, 2).toUpperCase();
-        
-        const avatarHtml = conv.userAvatar 
-          ? `<img src="${conv.userAvatar}" class="w-11 h-11 rounded-full object-cover shrink-0 border border-slate-700">`
-          : `<div class="w-11 h-11 rounded-full bg-blue-600/30 border border-blue-500/30 flex items-center justify-center font-bold text-blue-300 shrink-0">${initials}</div>`;
-
-        return `
-          <div onclick="selectConversation('${conv.senderId}')" class="p-3.5 cursor-pointer transition flex items-start gap-3 ${isSelected ? 'bg-slate-800' : 'hover:bg-slate-900/60'} ${conv.needsAdmin ? 'border-l-4 border-rose-500 bg-rose-950/20' : ''}">
-            ${avatarHtml}
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between gap-1">
-                <h4 class="font-semibold text-sm truncate">${conv.userName}</h4>
-                ${conv.needsAdmin
-                  ? `<span class="text-[10px] bg-rose-500 text-white px-2 py-0.5 rounded-full font-bold shrink-0">Cần Admin</span>`
-                  : `<span class="text-[10px] ${conv.aiEnabled ? 'text-emerald-400' : 'text-amber-400'} shrink-0">${conv.aiEnabled ? '🤖 AI' : '👤 Tắt'}</span>`
-                }
-              </div>
-              <p class="text-xs text-slate-400 truncate mt-1">${conv.lastMessage || ''}</p>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-    
-    // --- TÍNH NĂNG CHUYỂN ĐỔI GIAO DIỆN SÁNG / TỐI CHUẨN TAILWIND ---
-    function toggleDarkMode() {
-      const html = document.documentElement;
-      const themeIcon = document.getElementById('themeIcon');
-      
-      if (html.classList.contains('dark')) {
-        // --- CHUYỂN SANG LIGHT MODE (SÁNG) ---
-        html.classList.remove('dark');
-        themeIcon.className = "fa-solid fa-sun text-amber-500";
-        
-        // Đổi màu nền chính và các khung sang tone sáng mượt mắt
-        document.body.className = "bg-slate-100 text-slate-800 h-screen flex flex-col md:flex-row font-sans overflow-hidden transition-colors duration-300";
-        document.querySelector('aside').className = "w-full md:w-72 bg-white border-r border-slate-200 flex flex-col justify-between p-5 shrink-0 relative transition-colors duration-300";
-        
-        // Đổi màu nền cột trái Livechat và khung chat chính
-        const sidebarInbox = document.getElementById('sidebarInbox');
-        if (sidebarInbox) sidebarInbox.className = "w-80 md:w-96 bg-white border-r border-slate-200 flex flex-col h-full shrink-0 transition-all duration-300";
-        
-        // Đổi màu chữ và các thẻ tài liệu sang xám trắng tương phản
-        document.querySelectorAll('.bg-slate-900, .bg-slate-950, .bg-slate-800\\/70, .bg-slate-800\\/80').forEach(el => {
-          el.style.backgroundColor = '#ffffff';
-          el.style.color = '#1e293b';
-          el.style.borderColor = '#e2e8f0';
-        });
-        document.querySelectorAll('.text-slate-300, .text-slate-400').forEach(el => {
-          el.style.color = '#475569';
-        });
-
-      } else {
-        // --- CHUYỂN VỀ DARK MODE (TỐI) ---
-        html.classList.add('dark');
-        themeIcon.className = "fa-solid fa-moon";
-        
-        document.body.className = "bg-slate-900 text-slate-100 h-screen flex flex-col md:flex-row font-sans overflow-hidden transition-colors duration-300";
-        document.querySelector('aside').className = "w-full md:w-72 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-5 shrink-0 relative transition-colors duration-300";
-        
-        const sidebarInbox = document.getElementById('sidebarInbox');
-        if (sidebarInbox) sidebarInbox.className = "w-80 md:w-96 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0 transition-all duration-300";
-
-        // Trả lại màu tối gốc
-        document.querySelectorAll('.bg-slate-900, .bg-slate-950, .bg-slate-800\\/70, .bg-slate-800\\/80').forEach(el => {
-          el.style.backgroundColor = '';
-          el.style.color = '';
-          el.style.borderColor = '';
-        });
-        document.querySelectorAll('.text-slate-300, .text-slate-400').forEach(el => {
-          el.style.color = '';
-        });
       }
     }
 
