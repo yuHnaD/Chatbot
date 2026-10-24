@@ -659,8 +659,18 @@ ${knowledgeText}`;
 
   if (!config.aiApiKey) return { reply: "Chưa cấu hình API Key trên web quản trị!", needsAdmin: false };
 
+  // Lấy tối đa 10 tin nhắn gần nhất để làm ngữ cảnh
+  const recentHistory = conversationHistory.slice(-10);
+  
   if (config.aiProvider === 'gemini') {
     const model = config.aiModel || 'gemini-2.5-flash';
+    const contents = [
+      ...recentHistory.map(m => ({
+        role: m.sender === 'customer' ? 'user' : 'model',
+        parts: [{ text: m.text }]
+      })),
+      { role: 'user', parts: [{ text: userMessage }] }
+    ];
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.aiApiKey.trim()}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -744,7 +754,15 @@ app.post('/webhook', async (req, res) => {
 
         if (conv.aiEnabled && db.config.botActive) {
           try {
-            const aiResult = await generateAIResponse(text);
+            // 1. Sao chép lại lịch sử tin nhắn cũ TRƯỚC KHI thêm câu hỏi mới của khách
+            const historyBeforeNewMessage = [...conv.messages];
+
+            // 2. Thêm tin nhắn mới của khách vào mảng
+            conv.messages.push({ sender: 'customer', text, time: timeStr });
+            conv.lastMessage = text;
+            conv.updatedAt = Date.now();
+
+            const aiResult = await generateAIResponse(text, historyBeforeNewMessage);
             await sendFacebookMessage(senderPsid, aiResult.reply, db.config.pageAccessToken);
 
             conv.messages.push({ sender: 'ai', text: aiResult.reply, time: timeStr, needsAdmin: aiResult.needsAdmin });
