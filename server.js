@@ -794,7 +794,7 @@ app.post('/webhook', async (req, res) => {
           };
         }
 
-        // const conv = db.conversations[senderPsid];
+        const conv = db.conversations[senderPsid];
         // conv.messages.push({ sender: 'customer', text, time: timeStr });
         // conv.lastMessage = text;
         // conv.updatedAt = Date.now();
