@@ -895,28 +895,68 @@
         `;
       }).join('');
     }
-
-    // --- TÍNH NĂNG CHUYỂN ĐỔI GIAO DIỆN SÁNG / TỐI ---
+    
+    // --- TÍNH NĂNG CHUYỂN ĐỔI GIAO DIỆN SÁNG / TỐI TOÀN DIỆN ---
     function toggleDarkMode() {
       const body = document.body;
       const themeIcon = document.getElementById('themeIcon');
+      const sidebar = document.querySelector('aside');
+      const mainContent = document.querySelector('main');
       
-      // Kiểm tra nếu đang là nền tối thì chuyển sang nền sáng, và ngược lại
+      // Kiểm tra trạng thái hiện tại dựa trên class của body
       if (body.classList.contains('bg-slate-900')) {
-        // Chuyển sang Giao diện Sáng
+        // --- CHUYỂN SANG GIAO DIỆN SÁNG ---
         body.classList.remove('bg-slate-900', 'text-slate-100');
         body.classList.add('bg-slate-100', 'text-slate-900');
         themeIcon.className = "fa-solid fa-sun text-amber-500";
         
-        // Đổi màu nền sidebar và các khung cho phù hợp sáng
-        document.querySelector('aside').className = "w-full md:w-72 bg-white border-r border-slate-200 flex flex-col justify-between p-5 shrink-0 relative";
+        // Đổi màu Sidebar sang sáng
+        sidebar.className = "w-full md:w-72 bg-white border-r border-slate-200 flex flex-col justify-between p-5 shrink-0 relative";
+        
+        // Đổi màu phần nội dung chính bên phải sang sáng
+        mainContent.querySelectorAll('.bg-slate-950').forEach(el => {
+          el.classList.remove('bg-slate-950');
+          el.classList.add('bg-white');
+        });
+        mainContent.querySelectorAll('.bg-slate-900').forEach(el => {
+          el.classList.remove('bg-slate-900');
+          el.classList.add('bg-slate-50');
+        });
+        mainContent.querySelectorAll('.border-slate-800').forEach(el => {
+          el.classList.remove('border-slate-800');
+          el.classList.add('border-slate-200');
+        });
+        mainContent.querySelectorAll('.text-slate-300, .text-slate-400').forEach(el => {
+          el.classList.remove('text-slate-300', 'text-slate-400');
+          el.classList.add('text-slate-600');
+        });
+
       } else {
-        // Trở về Giao diện Tối mặc định
+        // --- TRỞ VỀ GIAO DIỆN TỐI (DARK MODE) ---
         body.classList.remove('bg-slate-100', 'text-slate-900');
         body.classList.add('bg-slate-900', 'text-slate-100');
         themeIcon.className = "fa-solid fa-moon";
         
-        document.querySelector('aside').className = "w-full md:w-72 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-5 shrink-0 relative";
+        // Trả lại màu cho Sidebar
+        sidebar.className = "w-full md:w-72 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-5 shrink-0 relative";
+        
+        // Trả lại màu cho nội dung chính
+        mainContent.querySelectorAll('.bg-white').forEach(el => {
+          el.classList.remove('bg-white');
+          el.classList.add('bg-slate-950');
+        });
+        mainContent.querySelectorAll('.bg-slate-50').forEach(el => {
+          el.classList.remove('bg-slate-50');
+          el.classList.add('bg-slate-900');
+        });
+        mainContent.querySelectorAll('.border-slate-200').forEach(el => {
+          el.classList.remove('border-slate-200');
+          el.classList.add('border-slate-800');
+        });
+        mainContent.querySelectorAll('.text-slate-600').forEach(el => {
+          el.classList.remove('text-slate-600');
+          el.classList.add('text-slate-400');
+        });
       }
     }
 
