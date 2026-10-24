@@ -23,28 +23,32 @@
             <i class="fa-brands fa-facebook-messenger"></i>
           </div>
           <div>
-            <h1 class="font-bold text-lg leading-tight">Lái Hộ AI Hub</h1>
+            <h1 class="font-bold text-lg leading-tight">Lái Hộ AI</h1>
             <p class="text-xs text-emerald-500 dark:text-emerald-400 flex items-center gap-1">
               <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-ping"></span> Realtime Live Chat
             </p>
           </div>
         </div>
 
-        <!-- NÚT CHUYỂN ĐỔI SÁNG / TỐI -->
-        <button onclick="toggleTheme()" title="Chuyển đổi giao diện" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-yellow-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
-          <i id="themeIcon" class="fa-solid fa-moon"></i>
-        </button>
-      </div>
+      <!-- CỤM NÚT BÊN PHẢI: Nút Sáng/Tối + Nút Show ra -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <!-- Nút chuyển đổi sáng/tối -->
+          <button onclick="toggleTheme()" title="Chuyển đổi giao diện" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-yellow-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+            <i id="themeIcon" class="fa-solid fa-moon"></i>
+          </button>
 
-      <button
-        id="expandSidebarBtn"
-        onclick="toggleInboxSidebar()"
-        title="Mở hộp thư"
-        aria-label="Mở hộp thư"
-        class="hidden absolute right-3 top-5 z-30 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-blue-500 dark:text-blue-400 w-10 h-10 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 transition items-center justify-center"
-      >
-        <i class="fa-solid fa-angles-right"></i>
-      </button>
+          <!-- Nút show ra (Mặc định ẩn, chỉ hiện khi thu gọn hộp thư) -->
+          <button
+            id="expandSidebarBtn"
+            onclick="toggleInboxSidebar()"  
+            title="Mở hộp thư"
+            aria-label="Mở hộp thư"
+            class="hidden w-9 h-9 rounded-xl bg-blue-50 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-slate-700 transition items-center justify-center shadow-sm"
+          >
+            <i class="fa-solid fa-angles-right text-sm"></i>
+          </button>
+        </div>
+      </div>
 
       <!-- Trạng thái Bot toàn cục -->
       <div class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 mb-5 transition-colors">
@@ -833,18 +837,21 @@
       isInboxCollapsed = !isInboxCollapsed;
       const sidebar = document.getElementById('sidebarInbox');
       const expandBtn = document.getElementById('expandSidebarBtn');
-      const toggleIcon = document.getElementById('toggleIcon');
       
       if (isInboxCollapsed) {
+        // Thu gọn cột trái hộp thư
         sidebar.classList.add('w-0', 'overflow-hidden', 'p-0', 'border-none');
         sidebar.classList.remove('w-80', 'md:w-96');
+        // Hiện nút mở rộng nằm cạnh nút sáng/tối
         expandBtn.classList.remove('hidden');
-        toggleIcon.className = "fa-solid fa-angles-right";
+        expandBtn.classList.add('flex');
       } else {
+        // Mở rộng cột trái hộp thư
         sidebar.classList.remove('w-0', 'overflow-hidden', 'p-0', 'border-none');
         sidebar.classList.add('w-80', 'md:w-96');
+        // Ẩn nút mở rộng đi
         expandBtn.classList.add('hidden');
-        toggleIcon.className = "fa-solid fa-angles-left";
+        expandBtn.classList.remove('flex');
       }
     }
 
