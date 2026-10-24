@@ -516,6 +516,18 @@ function getVietnamTimeString() {
   return `${timeStr} ${dateStr}`;
 }
 
+// Hàm kiểm tra tin nhắn khách có phải là yêu cầu đặt chuyến lẻ / đặt tài xế không
+function isBookingRequest(text) {
+  if (!text) return false;
+  const lower = text.toLowerCase();
+  const keywords = [
+    'đặt xe', 'dat xe', 'đặt tài', 'dat tai', 'đặt chuyến', 'dat chuyen',
+    'cần tài xế', 'can tai xe', 'tìm tài xế', 'tim tai xe', 'đặt tài xế', 'dat tai xe',
+    'gọi xe', 'goi xe', 'đi từ', 'di tu', 'đón ở', 'don o', 'đón tại', 'don tai'
+  ];
+  return keywords.some(kw => lower.includes(kw));
+}
+
 // ==========================================
 // API REALTIME STREAM (SSE)
 // ==========================================
@@ -652,8 +664,9 @@ ${knowledgeText}`;
     });
     const data = await res.json();
     const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || persona.fallback;
-    const needsAdmin = replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
-    return { reply: replyText, needsAdmin };
+    const isBooking = isBookingRequest(userMessage);
+    const needsAdmin = isBooking ||replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
+    return { reply: replyText, needsAdmin, isBooking };
   } else {
     const model = config.aiModel || 'gpt-4o-mini';
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -739,7 +752,8 @@ app.post('/webhook', async (req, res) => {
 
         broadcastToAdmins('NEW_CUSTOMER_MESSAGE', {
           conversation: conv,
-          alertAdmin: conv.needsAdmin
+          alertAdmin: conv.needsAdmin,
+          isBooking: isBookingRequest(text)
         });
       }
     }
