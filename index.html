@@ -738,6 +738,9 @@
           <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700/60 text-xs text-slate-400">
             <span>Cập nhật: ${doc.updatedAt}</span>
             <div class="flex items-center gap-2">
+              <button onclick="toggleDocAlert('${doc.id}')" title="Bật/Tắt cảnh báo Admin cho tài liệu này" class="px-2.5 py-1 rounded-lg ${doc.alertAdmin ? 'bg-rose-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+                <i class="fa-solid fa-bell"></i> ${doc.alertAdmin ? 'Tắt Báo' : 'Bật Báo'}
+              </button>
               <button onclick="toggleDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white">${doc.active ? 'Tắt' : 'Bật'}</button>
               <button onclick="editDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-600/30 hover:bg-blue-100 dark:hover:bg-blue-600 text-blue-600 dark:text-blue-300">Sửa</button>
               <button onclick="deleteDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-600/30 hover:bg-rose-100 dark:hover:bg-rose-600 text-rose-600 dark:text-rose-300">Xóa</button>
@@ -830,6 +833,18 @@
       const data = await res.json();
       chatBox.innerHTML += `<div class="flex justify-start"><div class="bg-slate-100 dark:bg-slate-700/80 border ${data.needsAdmin ? 'border-rose-500' : 'border-slate-200 dark:border-transparent'} text-slate-800 dark:text-slate-100 p-3 rounded-2xl rounded-tl-none max-w-[85%] whitespace-pre-line shadow-sm">${data.reply}</div></div>`;
       chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function toggleDocAlert(id) {
+      const res = await fetch('/api/documents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggleAlert', id })
+      });
+      const data = await res.json();
+      appData.documents = data.documents;
+      renderDocuments();
+      showToast("Đã cập nhật trạng thái cảnh báo cho tài liệu!");
     }
 
     let isInboxCollapsed = false;

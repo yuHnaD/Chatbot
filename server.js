@@ -442,6 +442,7 @@ async function initDB() {
             title: "Quy trình đặt xe & Thông tin chung Laiho",
             content: "- Các bước đặt tài xế lái hộ trên app Laiho:\n  + Nhập Điểm đón/Điểm đi\n  + Chọn dịch vụ Tài xế Ô tô / Tài xế Xe máy / Tài xế đi tỉnh / Xe tải Van điện\n  + Chọn phương thức thanh toán\n  + Nhập mã khuyến mãi (nếu có)\n  + Chọn Đặt xe để hệ thống tìm tài xế gần nhất\n- Tải app tại: https://laiho.vn/",
             active: true,
+            alertAdmin: true,
             updatedAt: "Hôm nay"
           },
           {
@@ -449,6 +450,7 @@ async function initDB() {
             title: "Quy định chuyến đi & Giá cước",
             content: "- Thuế VAT áp dụng cho các chuyến đi là 8%.\n- Phí dịch vụ (thu thêm ngoài cước): 10.000 VNĐ đối với xe ô tô và 7.000 VNĐ đối với xe máy.\n- Hệ thống điều chỉnh giảm giá chuyến cho khách đặt để tăng lượng khách.\n- Quy định khi khách đặt không có tài xế nhận: Bộ phận Điều phối sẽ chủ động gọi khách trước, tuyệt đối không để tài xế tự thỏa thuận (deal) giá.\n- Đã bãi bỏ chính sách gán chuyến không ăn chia đối với tài xế.\n- Hệ thống đã đấu nối thêm phương tiện xe tải Van điện lên app Laiho.",
             active: true,
+            alertAdmin: true,
             updatedAt: "Hôm nay"
           },
           {
@@ -456,6 +458,7 @@ async function initDB() {
             title: "Yêu cầu hồ sơ & Chiết khấu cho Tài xế",
             content: "- Yêu cầu đăng ký:\n  + GPLX hạng A hoặc B2 trở lên (còn hạn).\n  + Kinh nghiệm lái xe >3 năm.\n  + CMND/CCCD và đã khai báo VNEID cấp 2.\n  + Giấy khám sức khỏe mẫu TT36.\n- Tỷ lệ chiết khấu:\n  + Tài xế ô tô: 75% - 25% (Tài xế nhận 75%).\n  + Tài xế xe máy: 80% - 20% (Tài xế nhận 80%).\n- Ưu đãi đặc biệt 1: Nộp kèm Lý lịch tư pháp hoặc Giấy xác nhận hạnh kiểm tại địa phương ➔ Hưởng ưu đãi chiết khấu xe hơi 12 tháng.\n- Ưu đãi đặc biệt 2: Tài xế giới thiệu khách tải app, khi khách đó đặt chuyến cho chính tài xế đó, tài xế được cộng thêm 5% doanh thu trước thuế và phí.\n- Chi phí ban đầu:\n  + Đồng phục (1 áo sơ mi + 1 áo khoác): Tặng đồng phục 100% khi Bác tài nhận 1 cuốc trên app (thay vì 230.000đ).\n  + Nạp ví tài xế tối thiểu: 200.000 VNĐ.",
             active: true,
+            alertAdmin: true,
             updatedAt: "Hôm nay"
           },
           {
@@ -463,6 +466,7 @@ async function initDB() {
             title: "Chính sách Quán đối tác & Chi nhánh",
             content: "- Chính sách Quán đối tác: Tất cả các quán đối tác khi đặt chuyến thành công sẽ được hưởng 5% doanh thu trước thuế và phí.\n- Địa chỉ chi nhánh đăng ký trực tiếp (Thời gian: 8h - 17h từ Thứ 2 đến Thứ 6):\n  + Hà Nội: Lô 7 LK 16 B1.1 Khu Đô Thị Thanh Hà, Xã Bình Minh, TP Hà Nội.\n  + Hồ Chí Minh: 132 Lê Tuấn Mậu, Phường 13, Quận 6, TP.HCM.",
             active: true,
+            alertAdmin: true,
             updatedAt: "Hôm nay"
           }
         ],
@@ -569,13 +573,16 @@ app.post('/api/documents', async (req, res) => {
   const db = await loadDB();
   const { action, doc, id } = req.body;
   if (action === 'add') {
-    db.documents.unshift({ id: 'doc_' + Date.now(), title: doc.title, content: doc.content, active: true, updatedAt: new Date().toLocaleDateString('vi-VN') });
+    db.documents.unshift({ id: 'doc_' + Date.now(), title: doc.title, content: doc.content, active: true, alertAdmin: !!doc.alertAdmin, updatedAt: new Date().toLocaleDateString('vi-VN') });
   } else if (action === 'update') {
     const idx = db.documents.findIndex(d => d.id === doc.id);
     if (idx !== -1) db.documents[idx] = { ...db.documents[idx], ...doc, updatedAt: new Date().toLocaleDateString('vi-VN') };
   } else if (action === 'toggle') {
     const item = db.documents.find(d => d.id === id);
     if (item) item.active = !item.active;
+  } else if (action === 'toggleAlert') { 
+    const item = db.documents.find(d => d.id === id);
+    if (item) item.alertAdmin = !item.alertAdmin;
   } else if (action === 'delete') {
     db.documents = db.documents.filter(d => d.id !== id);
   }
@@ -636,8 +643,9 @@ async function generateAIResponse(userMessage) {
   const db = await loadDB();
   const { config, persona, documents } = db;
   const activeDocs = documents.filter(d => d.active);
+  const alertDocTitles = activeDocs.filter(d => d.alertAdmin).map(d => d.title);
   const knowledgeText = activeDocs.map((d, idx) => `--- TÀI LIỆU ${idx + 1}: ${d.title} ---\n${d.content}`).join('\n\n');
-
+  
   const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty.
 Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
 
@@ -664,9 +672,13 @@ ${knowledgeText}`;
     });
     const data = await res.json();
     const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || persona.fallback;
+    const matchedAlertDoc = activeDocs.find(d => d.alertAdmin && (
+      replyText.toLowerCase().includes(d.title.toLowerCase()) || 
+      userMessage.toLowerCase().includes(d.title.toLowerCase())
+    ));
     const isBooking = isBookingRequest(userMessage);
-    const needsAdmin = isBooking ||replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
-    return { reply: replyText, needsAdmin, isBooking };
+    const needsAdmin = matchedAlertDoc || isBooking || replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
+    return { reply: replyText, needsAdmin, alertReason: matchedAlertDoc ? matchedAlertDoc.title : null};
   } else {
     const model = config.aiModel || 'gpt-4o-mini';
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
