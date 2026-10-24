@@ -1,10 +1,15 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quản trị AI Chatbot Lái Hộ</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
 <body class="bg-slate-900 text-slate-100 h-screen flex flex-col md:flex-row font-sans overflow-hidden">
@@ -896,66 +901,53 @@
       }).join('');
     }
     
-    // --- TÍNH NĂNG CHUYỂN ĐỔI GIAO DIỆN SÁNG / TỐI TOÀN DIỆN ---
+    // --- TÍNH NĂNG CHUYỂN ĐỔI GIAO DIỆN SÁNG / TỐI CHUẨN TAILWIND ---
     function toggleDarkMode() {
-      const body = document.body;
+      const html = document.documentElement;
       const themeIcon = document.getElementById('themeIcon');
-      const sidebar = document.querySelector('aside');
-      const mainContent = document.querySelector('main');
       
-      // Kiểm tra trạng thái hiện tại dựa trên class của body
-      if (body.classList.contains('bg-slate-900')) {
-        // --- CHUYỂN SANG GIAO DIỆN SÁNG ---
-        body.classList.remove('bg-slate-900', 'text-slate-100');
-        body.classList.add('bg-slate-100', 'text-slate-900');
+      if (html.classList.contains('dark')) {
+        // --- CHUYỂN SANG LIGHT MODE (SÁNG) ---
+        html.classList.remove('dark');
         themeIcon.className = "fa-solid fa-sun text-amber-500";
         
-        // Đổi màu Sidebar sang sáng
-        sidebar.className = "w-full md:w-72 bg-white border-r border-slate-200 flex flex-col justify-between p-5 shrink-0 relative";
+        // Đổi màu nền chính và các khung sang tone sáng mượt mắt
+        document.body.className = "bg-slate-100 text-slate-800 h-screen flex flex-col md:flex-row font-sans overflow-hidden transition-colors duration-300";
+        document.querySelector('aside').className = "w-full md:w-72 bg-white border-r border-slate-200 flex flex-col justify-between p-5 shrink-0 relative transition-colors duration-300";
         
-        // Đổi màu phần nội dung chính bên phải sang sáng
-        mainContent.querySelectorAll('.bg-slate-950').forEach(el => {
-          el.classList.remove('bg-slate-950');
-          el.classList.add('bg-white');
+        // Đổi màu nền cột trái Livechat và khung chat chính
+        const sidebarInbox = document.getElementById('sidebarInbox');
+        if (sidebarInbox) sidebarInbox.className = "w-80 md:w-96 bg-white border-r border-slate-200 flex flex-col h-full shrink-0 transition-all duration-300";
+        
+        // Đổi màu chữ và các thẻ tài liệu sang xám trắng tương phản
+        document.querySelectorAll('.bg-slate-900, .bg-slate-950, .bg-slate-800\\/70, .bg-slate-800\\/80').forEach(el => {
+          el.style.backgroundColor = '#ffffff';
+          el.style.color = '#1e293b';
+          el.style.borderColor = '#e2e8f0';
         });
-        mainContent.querySelectorAll('.bg-slate-900').forEach(el => {
-          el.classList.remove('bg-slate-900');
-          el.classList.add('bg-slate-50');
-        });
-        mainContent.querySelectorAll('.border-slate-800').forEach(el => {
-          el.classList.remove('border-slate-800');
-          el.classList.add('border-slate-200');
-        });
-        mainContent.querySelectorAll('.text-slate-300, .text-slate-400').forEach(el => {
-          el.classList.remove('text-slate-300', 'text-slate-400');
-          el.classList.add('text-slate-600');
+        document.querySelectorAll('.text-slate-300, .text-slate-400').forEach(el => {
+          el.style.color = '#475569';
         });
 
       } else {
-        // --- TRỞ VỀ GIAO DIỆN TỐI (DARK MODE) ---
-        body.classList.remove('bg-slate-100', 'text-slate-900');
-        body.classList.add('bg-slate-900', 'text-slate-100');
+        // --- CHUYỂN VỀ DARK MODE (TỐI) ---
+        html.classList.add('dark');
         themeIcon.className = "fa-solid fa-moon";
         
-        // Trả lại màu cho Sidebar
-        sidebar.className = "w-full md:w-72 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-5 shrink-0 relative";
+        document.body.className = "bg-slate-900 text-slate-100 h-screen flex flex-col md:flex-row font-sans overflow-hidden transition-colors duration-300";
+        document.querySelector('aside').className = "w-full md:w-72 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-5 shrink-0 relative transition-colors duration-300";
         
-        // Trả lại màu cho nội dung chính
-        mainContent.querySelectorAll('.bg-white').forEach(el => {
-          el.classList.remove('bg-white');
-          el.classList.add('bg-slate-950');
+        const sidebarInbox = document.getElementById('sidebarInbox');
+        if (sidebarInbox) sidebarInbox.className = "w-80 md:w-96 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0 transition-all duration-300";
+
+        // Trả lại màu tối gốc
+        document.querySelectorAll('.bg-slate-900, .bg-slate-950, .bg-slate-800\\/70, .bg-slate-800\\/80').forEach(el => {
+          el.style.backgroundColor = '';
+          el.style.color = '';
+          el.style.borderColor = '';
         });
-        mainContent.querySelectorAll('.bg-slate-50').forEach(el => {
-          el.classList.remove('bg-slate-50');
-          el.classList.add('bg-slate-900');
-        });
-        mainContent.querySelectorAll('.border-slate-200').forEach(el => {
-          el.classList.remove('border-slate-200');
-          el.classList.add('border-slate-800');
-        });
-        mainContent.querySelectorAll('.text-slate-600').forEach(el => {
-          el.classList.remove('text-slate-600');
-          el.classList.add('text-slate-400');
+        document.querySelectorAll('.text-slate-300, .text-slate-400').forEach(el => {
+          el.style.color = '';
         });
       }
     }
