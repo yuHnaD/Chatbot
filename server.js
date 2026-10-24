@@ -639,71 +639,118 @@ app.post('/api/test-chat', async (req, res) => {
 // ==========================================
 // XỬ LÝ TRÍ TUỆ NHÂN TẠO THÔNG MINH
 // ==========================================
-async function generateAIResponse(userMessage) {
+// async function generateAIResponse(userMessage) {
+//   const db = await loadDB();
+//   const { config, persona, documents } = db;
+//   const activeDocs = documents.filter(d => d.active);
+//   const alertDocTitles = activeDocs.filter(d => d.alertAdmin).map(d => d.title);
+//   const knowledgeText = activeDocs.map((d, idx) => `--- TÀI LIỆU ${idx + 1}: ${d.title} ---\n${d.content}`).join('\n\n');
+  
+//   const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty.
+// Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
+
+// QUY TẮC PHẢN HỒI THÔNG MINH:
+// 1. Khách hàng thường nhắn tin bằng tiếng Việt không dấu, viết tắt, hoặc diễn đạt bằng ngôn từ đời thường. Bạn phải CỐ GẮNG HẾT SỨC suy luận ngữ cảnh, quy đổi các từ không dấu/viết tắt về đúng nghĩa nghiệp vụ trong tài liệu để trả lời chuẩn xác.
+// 2. Chỉ sử dụng thông tin trong [TÀI LIỆU CÔNG TY] bên dưới để tư vấn. Không tự bịa đặt dữ liệu ngoài tài liệu.
+// 3. Nếu sau khi đã cố gắng suy luận ngữ cảnh mà vấn đề hoàn toàn KHÔNG CÓ TRONG TÀI LIỆU, bạn PHẢI trả lời nguyên văn câu dự phòng sau đây: "${persona.fallback}"
+
+// [TÀI LIỆU CÔNG TY]:
+// ${knowledgeText}`;
+
+//   if (!config.aiApiKey) return { reply: "Chưa cấu hình API Key trên web quản trị!", needsAdmin: false };
+
+//   if (config.aiProvider === 'gemini') {
+//     const model = config.aiModel || 'gemini-2.5-flash';
+//     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.aiApiKey.trim()}`, {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({
+//         system_instruction: { parts: [{ text: systemInstruction }] },
+//         contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+//         generationConfig: { temperature: 0.2 }
+//       })
+//     });
+//     const data = await res.json();
+//     const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || persona.fallback;
+//     const matchedAlertDoc = activeDocs.find(d => d.alertAdmin && (
+//       replyText.toLowerCase().includes(d.title.toLowerCase()) || 
+//       userMessage.toLowerCase().includes(d.title.toLowerCase())
+//     ));
+//     const isBooking = isBookingRequest(userMessage);
+//     const needsAdmin = matchedAlertDoc || isBooking || replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
+//     return { reply: replyText, needsAdmin, alertReason: matchedAlertDoc ? matchedAlertDoc.title : null};
+//   } else {
+//     const model = config.aiModel || 'gpt-4o-mini';
+//     const res = await fetch('https://api.openai.com/v1/chat/completions', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.aiApiKey.trim()}` },
+//       body: JSON.stringify({
+//         model,
+//         messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: userMessage }],
+//         temperature: 0.2
+//       })
+//     });
+//     const data = await res.json();
+//     const replyText = data.choices?.[0]?.message?.content || persona.fallback;
+//     const needsAdmin = replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
+//     return { reply: replyText, needsAdmin };
+//   }
+// }  
+
+async function generateAIResponse(userMessage, conversationHistory = []) {
   const db = await loadDB();
   const { config, persona, documents } = db;
   const activeDocs = documents.filter(d => d.active);
-  const alertDocTitles = activeDocs.filter(d => d.alertAdmin).map(d => d.title);
   const knowledgeText = activeDocs.map((d, idx) => `--- TÀI LIỆU ${idx + 1}: ${d.title} ---\n${d.content}`).join('\n\n');
-  
-  const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty.
-Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
 
-QUY TẮC PHẢN HỒI THÔNG MINH:
-1. Khách hàng thường nhắn tin bằng tiếng Việt không dấu, viết tắt, hoặc diễn đạt bằng ngôn từ đời thường. Bạn phải CỐ GẮNG HẾT SỨC suy luận ngữ cảnh, quy đổi các từ không dấu/viết tắt về đúng nghĩa nghiệp vụ trong tài liệu để trả lời chuẩn xác.
-2. Chỉ sử dụng thông tin trong [TÀI LIỆU CÔNG TY] bên dưới để tư vấn. Không tự bịa đặt dữ liệu ngoài tài liệu.
-3. Nếu sau khi đã cố gắng suy luận ngữ cảnh mà vấn đề hoàn toàn KHÔNG CÓ TRONG TÀI LIỆU, bạn PHẢI trả lời nguyên văn câu dự phòng sau đây: "${persona.fallback}"
+  const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty. Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
+QUY TẮC:
+1. Dựa vào LỊCH SỬ TRÒ CHUYỆN bên dưới để nhớ ngữ cảnh khách đang trao đổi.
+2. Chỉ dùng thông tin trong [TÀI LIỆU CÔNG TY]. Không tự bịa đặt.
+3. Nếu ngoài tài liệu, trả lời: "${persona.fallback}"
 
 [TÀI LIỆU CÔNG TY]:
 ${knowledgeText}`;
 
   if (!config.aiApiKey) return { reply: "Chưa cấu hình API Key trên web quản trị!", needsAdmin: false };
 
-  // Lấy tối đa 10 tin nhắn gần nhất để làm ngữ cảnh
   const recentHistory = conversationHistory.slice(-10);
-  
+
   if (config.aiProvider === 'gemini') {
     const model = config.aiModel || 'gemini-2.5-flash';
     const contents = [
-      ...recentHistory.map(m => ({
-        role: m.sender === 'customer' ? 'user' : 'model',
-        parts: [{ text: m.text }]
-      })),
+      ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'model', parts: [{ text: m.text }] })),
       { role: 'user', parts: [{ text: userMessage }] }
     ];
+
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.aiApiKey.trim()}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemInstruction }] },
-        contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-        generationConfig: { temperature: 0.2 }
-      })
+      body: JSON.stringify({ system_instruction: { parts: [{ text: systemInstruction }] }, contents, generationConfig: { temperature: 0.2 } })
     });
     const data = await res.json();
     const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || persona.fallback;
-    const matchedAlertDoc = activeDocs.find(d => d.alertAdmin && (
-      replyText.toLowerCase().includes(d.title.toLowerCase()) || 
-      userMessage.toLowerCase().includes(d.title.toLowerCase())
-    ));
     const isBooking = isBookingRequest(userMessage);
-    const needsAdmin = matchedAlertDoc || isBooking || replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
-    return { reply: replyText, needsAdmin, alertReason: matchedAlertDoc ? matchedAlertDoc.title : null};
+    const needsAdmin = isBooking || replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
+    return { reply: replyText, needsAdmin, isBooking };
   } else {
     const model = config.aiModel || 'gpt-4o-mini';
+    const messages = [
+      { role: 'system', content: systemInstruction },
+      ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'assistant', content: m.text })),
+      { role: 'user', content: userMessage }
+    ];
+
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.aiApiKey.trim()}` },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: userMessage }],
-        temperature: 0.2
-      })
+      body: JSON.stringify({ model, messages, temperature: 0.2 })
     });
     const data = await res.json();
     const replyText = data.choices?.[0]?.message?.content || persona.fallback;
-    const needsAdmin = replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
-    return { reply: replyText, needsAdmin };
+    const isBooking = isBookingRequest(userMessage);
+    const needsAdmin = isBooking || replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
+    return { reply: replyText, needsAdmin, isBooking };
   }
 }
 
@@ -752,17 +799,34 @@ app.post('/webhook', async (req, res) => {
         conv.lastMessage = text;
         conv.updatedAt = Date.now();
 
+        // if (conv.aiEnabled && db.config.botActive) {
+        //   try {
+        //     const aiResult = await generateAIResponse(text);
+        //     await sendFacebookMessage(senderPsid, aiResult.reply, db.config.pageAccessToken);
+
+        //     conv.messages.push({ sender: 'ai', text: aiResult.reply, time: timeStr, needsAdmin: aiResult.needsAdmin });
+        //     conv.lastMessage = `AI: ${aiResult.reply}`;
+
+        //     if (aiResult.needsAdmin) {
+        //       conv.needsAdmin = true;
+        //     }
+        //   } catch (e) {
+        //     console.error("Lỗi gọi AI hoặc gửi tin nhắn FB:", e.message);
+        //   }
+        // } else {
+        //   conv.needsAdmin = true;
+        // }
+
         if (conv.aiEnabled && db.config.botActive) {
           try {
-            // 1. Sao chép lại lịch sử tin nhắn cũ TRƯỚC KHI thêm câu hỏi mới của khách
             const historyBeforeNewMessage = [...conv.messages];
 
-            // 2. Thêm tin nhắn mới của khách vào mảng
             conv.messages.push({ sender: 'customer', text, time: timeStr });
             conv.lastMessage = text;
             conv.updatedAt = Date.now();
 
             const aiResult = await generateAIResponse(text, historyBeforeNewMessage);
+
             await sendFacebookMessage(senderPsid, aiResult.reply, db.config.pageAccessToken);
 
             conv.messages.push({ sender: 'ai', text: aiResult.reply, time: timeStr, needsAdmin: aiResult.needsAdmin });
@@ -772,10 +836,8 @@ app.post('/webhook', async (req, res) => {
               conv.needsAdmin = true;
             }
           } catch (e) {
-            console.error("Lỗi gọi AI hoặc gửi tin nhắn FB:", e.message);
+            console.error("Lỗi:", e.message);
           }
-        } else {
-          conv.needsAdmin = true;
         }
 
         await saveDB(db);
