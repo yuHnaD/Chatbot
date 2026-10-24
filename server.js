@@ -520,18 +520,6 @@ function getVietnamTimeString() {
   return `${timeStr} ${dateStr}`;
 }
 
-// Hàm kiểm tra tin nhắn khách có phải là yêu cầu đặt chuyến lẻ / đặt tài xế không
-function isBookingRequest(text) {
-  if (!text) return false;
-  const lower = text.toLowerCase();
-  const keywords = [
-    'đặt xe', 'dat xe', 'đặt tài', 'dat tai', 'đặt chuyến', 'dat chuyen',
-    'cần tài xế', 'can tai xe', 'tìm tài xế', 'tim tai xe', 'đặt tài xế', 'dat tai xe',
-    'gọi xe', 'goi xe', 'đi từ', 'di tu', 'đón ở', 'don o', 'đón tại', 'don tai'
-  ];
-  return keywords.some(kw => lower.includes(kw));
-}
-
 // ==========================================
 // API REALTIME STREAM (SSE)
 // ==========================================
@@ -697,6 +685,61 @@ app.post('/api/test-chat', async (req, res) => {
 //   }
 // }  
 
+// async function generateAIResponse(userMessage, conversationHistory = []) {
+//   const db = await loadDB();
+//   const { config, persona, documents } = db;
+//   const activeDocs = documents.filter(d => d.active);
+//   const knowledgeText = activeDocs.map((d, idx) => `--- TÀI LIỆU ${idx + 1}: ${d.title} ---\n${d.content}`).join('\n\n');
+
+//   const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty. Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
+// QUY TẮC:
+// 1. Dựa vào LỊCH SỬ TRÒ CHUYỆN bên dưới để nhớ ngữ cảnh khách đang trao đổi.
+// 2. Chỉ dùng thông tin trong [TÀI LIỆU CÔNG TY]. Không tự bịa đặt.
+// 3. Nếu thông tin KHÔNG CÓ trong tài liệu, bạn CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau, KHÔNG ĐƯỢC THÊM BỚT BẤT KỲ TỪ NÀO KHÁC:"${persona.fallback}"
+
+// [TÀI LIỆU CÔNG TY]:
+// ${knowledgeText}`;
+
+//   if (!config.aiApiKey) return { reply: "Chưa cấu hình API Key trên web quản trị!", needsAdmin: false };
+
+//   const recentHistory = conversationHistory.slice(-10);
+
+//   if (config.aiProvider === 'gemini') {
+//     const model = config.aiModel || 'gemini-2.5-flash';
+//     const contents = [
+//       ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'model', parts: [{ text: m.text }] })),
+//       { role: 'user', parts: [{ text: userMessage }] }
+//     ];
+
+//     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.aiApiKey.trim()}`, {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ system_instruction: { parts: [{ text: systemInstruction }] }, contents, generationConfig: { temperature: 0.2 } })
+//     });
+//     const data = await res.json();
+//     const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || persona.fallback;
+//     const needsAdmin = replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
+//     return { reply: replyText, needsAdmin };
+//   } else {
+//     const model = config.aiModel || 'gpt-4o-mini';
+//     const messages = [
+//       { role: 'system', content: systemInstruction },
+//       ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'assistant', content: m.text })),
+//       { role: 'user', content: userMessage }
+//     ];
+
+//     const res = await fetch('https://api.openai.com/v1/chat/completions', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.aiApiKey.trim()}` },
+//       body: JSON.stringify({ model, messages, temperature: 0.2 })
+//     });
+//     const data = await res.json();
+//     const replyText = data.choices?.[0]?.message?.content || persona.fallback;
+//     const needsAdmin = replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
+//     return { reply: replyText, needsAdmin };
+//   }
+// }
+
 async function generateAIResponse(userMessage, conversationHistory = []) {
   const db = await loadDB();
   const { config, persona, documents } = db;
@@ -707,7 +750,7 @@ async function generateAIResponse(userMessage, conversationHistory = []) {
 QUY TẮC:
 1. Dựa vào LỊCH SỬ TRÒ CHUYỆN bên dưới để nhớ ngữ cảnh khách đang trao đổi.
 2. Chỉ dùng thông tin trong [TÀI LIỆU CÔNG TY]. Không tự bịa đặt.
-3. Nếu ngoài tài liệu, trả lời: "${persona.fallback}"
+3. Nếu thông tin KHÔNG CÓ trong tài liệu, bạn CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau, KHÔNG ĐƯỢC THÊM BỚT BẤT KỲ TỪ NÀO KHÁC:"${persona.fallback}"
 
 [TÀI LIỆU CÔNG TY]:
 ${knowledgeText}`;
@@ -715,6 +758,11 @@ ${knowledgeText}`;
   if (!config.aiApiKey) return { reply: "Chưa cấu hình API Key trên web quản trị!", needsAdmin: false };
 
   const recentHistory = conversationHistory.slice(-10);
+
+  // Lấy danh sách tài liệu Admin đã BẬT QUẢ CHUÔNG (alertAdmin = true)
+  const alertDocs = activeDocs.filter(d => d.alertAdmin);
+
+  let replyText = "";
 
   if (config.aiProvider === 'gemini') {
     const model = config.aiModel || 'gemini-2.5-flash';
@@ -729,10 +777,7 @@ ${knowledgeText}`;
       body: JSON.stringify({ system_instruction: { parts: [{ text: systemInstruction }] }, contents, generationConfig: { temperature: 0.2 } })
     });
     const data = await res.json();
-    const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || persona.fallback;
-    const isBooking = isBookingRequest(userMessage);
-    const needsAdmin = isBooking || replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
-    return { reply: replyText, needsAdmin, isBooking };
+    replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || persona.fallback;
   } else {
     const model = config.aiModel || 'gpt-4o-mini';
     const messages = [
@@ -747,11 +792,22 @@ ${knowledgeText}`;
       body: JSON.stringify({ model, messages, temperature: 0.2 })
     });
     const data = await res.json();
-    const replyText = data.choices?.[0]?.message?.content || persona.fallback;
-    const isBooking = isBookingRequest(userMessage);
-    const needsAdmin = isBooking || replyText.includes(persona.fallback) || replyText.includes("ngoài thông tin");
-    return { reply: replyText, needsAdmin, isBooking };
+    replyText = data.choices?.[0]?.message?.content || persona.fallback;
   }
+
+  // 1. Kiểm tra nếu cuộc trò chuyện liên quan đến tài liệu có BẬT CHUÔNG 🔔
+  const matchedAlertDoc = alertDocs.find(d => 
+    userMessage.toLowerCase().includes(d.title.toLowerCase()) || 
+    replyText.toLowerCase().includes(d.title.toLowerCase())
+  );
+
+  // 2. Kiểm tra nếu AI trả lời bằng câu dự phòng (do không biết thông tin)
+  const isFallback = replyText.trim().startsWith(persona.fallback.trim()) || replyText.trim() === persona.fallback.trim();
+
+  // Bật cờ báo đỏ nếu dính 1 trong 2 trường hợp trên
+  const needsAdmin = !!matchedAlertDoc || isFallback;
+
+  return { reply: replyText, needsAdmin };
 }
 
 // ==========================================
@@ -849,7 +905,6 @@ app.post('/webhook', async (req, res) => {
         broadcastToAdmins('NEW_CUSTOMER_MESSAGE', {
           conversation: conv,
           alertAdmin: conv.needsAdmin,
-          isBooking: isBookingRequest(text)
         });
       }
     }
