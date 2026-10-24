@@ -5,7 +5,10 @@
 
 // const app = express();
 // const PORT = process.env.PORT || 3000;
-// const DB_FILE = path.join(__dirname, 'database.json');
+// // const DB_FILE = path.join(__dirname, 'database.json');
+
+// const DATA_DIR = process.env.RAILWAY_VOLUME_MOUNT_PATH || __dirname;
+// const DB_FILE = path.join(DATA_DIR, 'database.json');
 
 // app.use(cors());
 // app.use(express.json({ limit: '50mb' }));
@@ -61,7 +64,7 @@
 //       updatedAt: "Hôm nay"
 //     }
 //   ],
-//   conversations: {} // Lưu trữ hội thoại theo senderId của khách
+//   conversations: {}
 // };
 
 // function loadDB() {
@@ -75,7 +78,6 @@
 //   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
 // }
 
-// // Hàm phát sóng sự kiện Realtime tới toàn bộ trình duyệt Admin đang mở
 // function broadcastToAdmins(eventType, payload) {
 //   adminClients.forEach(client => {
 //     client.write(`data: ${JSON.stringify({ type: eventType, payload })}\n\n`);
@@ -144,7 +146,7 @@
 //     await sendFacebookMessage(senderId, text, db.config.pageAccessToken);
 
 //     if (!db.conversations[senderId]) {
-//       db.conversations[senderId] = { senderId, userName: `Khách ${senderId.slice(-4)}`, messages: [], aiEnabled: true, needsAdmin: false };
+//       db.conversations[senderId] = { senderId, userName: `Khách ${senderId.slice(-4)}`, userAvatar: '', messages: [], aiEnabled: true, needsAdmin: false };
 //     }
 
 //     const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN');
@@ -160,7 +162,6 @@
 //   }
 // });
 
-// // Cập nhật trạng thái bật/tắt AI hoặc đánh dấu đã xử lý cảnh báo
 // app.post('/api/conversations/status', (req, res) => {
 //   const { senderId, aiEnabled, needsAdmin, markRead } = req.body;
 //   const db = loadDB();
@@ -173,7 +174,6 @@
 //   res.json({ success: true });
 // });
 
-// // API Phòng Test Giả Lập trên Web
 // app.post('/api/test-chat', async (req, res) => {
 //   try {
 //     const { message } = req.body;
@@ -266,10 +266,15 @@
 //         const text = event.message.text;
 //         const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN');
 
+//         // Khởi tạo thông tin khách mới nếu chưa có
 //         if (!db.conversations[senderPsid]) {
+//           // GỌI API LẤY TÊN VÀ AVATAR THẬT TỪ FACEBOOK
+//           const fbProfile = await getFacebookUserProfile(senderPsid, db.config.pageAccessToken);
+
 //           db.conversations[senderPsid] = {
 //             senderId: senderPsid,
-//             userName: `Khách ${senderPsid.slice(-4)}`,
+//             userName: fbProfile.fullName,
+//             userAvatar: fbProfile.avatar,
 //             messages: [],
 //             aiEnabled: true,
 //             needsAdmin: false
@@ -281,31 +286,27 @@
 //         conv.lastMessage = text;
 //         conv.updatedAt = Date.now();
 
-//         // Kiểm tra xem khách có đang bị tắt AI riêng hoặc hệ thống toàn trang không
 //         if (conv.aiEnabled && db.config.botActive) {
 //           try {
 //             const aiResult = await generateAIResponse(text);
             
-//             // Gửi phản hồi ra Messenger thật của khách
 //             await sendFacebookMessage(senderPsid, aiResult.reply, db.config.pageAccessToken);
 
 //             conv.messages.push({ sender: 'ai', text: aiResult.reply, time: timeStr, needsAdmin: aiResult.needsAdmin });
 //             conv.lastMessage = `AI: ${aiResult.reply}`;
 
 //             if (aiResult.needsAdmin) {
-//               conv.needsAdmin = true; // Bật cờ báo đỏ cho Admin
+//               conv.needsAdmin = true;
 //             }
 //           } catch (e) {
 //             console.error("Lỗi gọi AI hoặc gửi tin nhắn FB:", e.message);
 //           }
 //         } else {
-//           // Nếu AI đang tắt cho khách này, đánh dấu cần Admin
 //           conv.needsAdmin = true;
 //         }
 
 //         saveDB(db);
 
-//         // Phát sóng sự kiện Realtime tới giao diện Admin
 //         broadcastToAdmins('NEW_CUSTOMER_MESSAGE', {
 //           conversation: conv,
 //           alertAdmin: conv.needsAdmin
@@ -317,13 +318,58 @@
 //   }
 // });
 
+// // async function sendFacebookMessage(recipientId, text, token) {
+// //   if (!token) throw new Error("Chưa nhập Page Access Token!");
+// //   await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token.trim()}`, {
+// //     method: 'POST',
+// //     headers: { 'Content-Type': 'application/json' },
+// //     body: JSON.stringify({ recipient: { id: recipientId }, message: { text } })
+// //   });
+// // }
+
 // async function sendFacebookMessage(recipientId, text, token) {
-//   if (!token) throw new Error("Chưa nhập Page Access Token!");
-//   await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token.trim()}`, {
+//   if (!token) {
+//     console.error("❌ LỖI GỬI FB: Chưa nhập Page Access Token trên giao diện quản trị!");
+//     throw new Error("Chưa nhập Page Access Token!");
+//   }
+
+//   const url = `https://graph.facebook.com/v19.0/me/messages?access_token=${token.trim()}`;
+//   const response = await fetch(url, {
 //     method: 'POST',
 //     headers: { 'Content-Type': 'application/json' },
-//     body: JSON.stringify({ recipient: { id: recipientId }, message: { text } })
+//     body: JSON.stringify({
+//       recipient: { id: recipientId },
+//       message: { text: text }
+//     })
 //   });
+
+//   const data = await response.json();
+  
+//   if (!response.ok || data.error) {
+//     console.error("❌ FACEBOOK API TỪ CHỐI GỬI TIN NHẮN:", JSON.stringify(data.error || data));
+//     throw new Error(data.error?.message || "Lỗi gọi Facebook Graph API");
+//   }
+
+//   console.log(`🤖 Đã đẩy tin nhắn ra Messenger thành công cho khách (${recipientId})!`);
+// }
+
+// // Hàm gọi Facebook Graph API để lấy Tên và Avatar thật của khách hàng
+// async function getFacebookUserProfile(senderId, pageAccessToken) {
+//   try {
+//     const url = `https://graph.facebook.com/v19.0/${senderId}?fields=first_name,last_name,profile_pic&access_token=${pageAccessToken.trim()}`;
+//     const response = await fetch(url);
+//     const data = await response.json();
+//     if (response.ok && !data.error) {
+//       const firstName = data.first_name || '';
+//       const lastName = data.last_name || '';
+//       const fullName = (firstName + ' ' + lastName).trim() || `Khách ${senderId.slice(-4)}`;
+//       const avatar = data.profile_pic || '';
+//       return { fullName, avatar };
+//     }
+//   } catch (e) {
+//     console.error("Không lấy được profile Facebook của khách:", e.message);
+//   }
+//   return { fullName: `Khách ${senderId.slice(-4)}`, avatar: '' };
 // }
 
 // app.get('/', (req, res) => {
@@ -335,94 +381,121 @@
 // });
 
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
+const mysql = require('mysql2/promise');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-// const DB_FILE = path.join(__dirname, 'database.json');
-// 🔴 CỐ ĐỊNH THẲNG VÀO VOLUME /APP/DATA ĐÃ CÀI TRÊN RAILWAY
-const DATA_DIR = '/app/data';
-const DB_FILE = path.join(DATA_DIR, 'database.json');
-
-// Đảm bảo thư mục data luôn tồn tại
-if (!fs.existsSync(DATA_DIR)) {
-  try {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  } catch (err) {
-    console.error("Không thể tạo thư mục Volume:", err);
-  }
-}
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(__dirname));
 
-// Danh sách các kết nối Realtime (SSE) đang mở từ trình duyệt Admin
 let adminClients = [];
 
-// Khởi tạo Database mặc định với toàn bộ tài liệu Lái Hộ chính thức
-const defaultData = {
-  config: {
-    botActive: true,
-    pageName: "Lái Hộ - Tải App & Đặt Tài Xế",
-    pageAccessToken: "",
-    verifyToken: "my_secret_verify_token_123",
-    aiProvider: "gemini",
-    aiApiKey: "",
-    aiModel: "gemini-3.5-flash"
-  },
-  persona: {
-    botName: "AI - Trợ lý Lái Hộ",
-    pronoun: "Em - Anh/Chị",
-    tone: "Thân thiện, nhiệt tình, chuyên nghiệp, khéo léo suy luận từ khóa viết tắt hoặc không dấu của khách",
-    fallback: "Dạ vấn đề này hiện nằm ngoài thông tin em đang nắm giữ. Em đã ghi nhận và chuyển câu hỏi này cho Quản trị viên hỗ trợ giải đáp cho Anh/Chị sớm nhất nhé ạ!"
-  },
-  documents: [],
-  conversations: {}
-};
+// Khởi tạo kết nối MySQL pool sử dụng biến môi trường tự động từ Railway
+const pool = mysql.createPool({
+  host: process.env.MYSQLHOST || 'localhost',
+  user: process.env.MYSQLUSER || 'root',
+  password: process.env.MYSQLPASSWORD || '',
+  database: process.env.MYSQLDATABASE || 'railway',
+  port: process.env.MYSQLPORT || 3306,
+  ssl: process.env.MYSQLHOST ? { rejectUnauthorized: false } : null,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
-// function loadDB() {
-//   if (!fs.existsSync(DB_FILE)) {
-//     fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf8');
-//   }
-//   return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-// }
-
-// function saveDB(data) {
-//   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
-// }
-
-function loadDB() {
-  // Đảm bảo thư mục /app/data luôn tồn tại trên Volume
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-
-  // Nếu file database.json chưa có trong Volume mới tạo file mặc định
-  if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf8');
-    return defaultData;
-  }
-
+// Hàm khởi tạo bảng CSDL và dữ liệu mặc định nếu chưa có
+async function initDB() {
   try {
-    const fileContent = fs.readFileSync(DB_FILE, 'utf8');
-    const parsedData = JSON.parse(fileContent);
-    
-    // Đảm bảo không bị thiếu các key mới nếu cấu trúc nâng cấp
-    return { ...defaultData, ...parsedData };
-  } catch (e) {
-    console.error("Lỗi đọc database.json, dùng dữ liệu mặc định:", e);
-    return defaultData;
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS settings (
+        \`key\` VARCHAR(50) PRIMARY KEY,
+        \`value\` LONGTEXT
+      )
+    `);
+
+    // Kiểm tra xem đã có config chưa, nếu chưa thì tạo mặc định
+    const [rows] = await pool.query('SELECT * FROM settings WHERE \`key\` = ?', ['app_data']);
+    if (rows.length === 0) {
+      const defaultData = {
+        config: {
+          botActive: true,
+          pageName: "Lái Hộ - Tải App & Đặt Tài Xế",
+          pageAccessToken: "",
+          verifyToken: "my_secret_verify_token_123",
+          aiProvider: "gemini",
+          aiApiKey: "",
+          aiModel: "gemini-2.5-flash"
+        },
+        persona: {
+          botName: "Linh - Trợ lý Lái Hộ",
+          pronoun: "Em - Anh/Chị",
+          tone: "Thân thiện, nhiệt tình, chuyên nghiệp, khéo léo suy luận từ khóa viết tắt hoặc không dấu của khách",
+          fallback: "Dạ vấn đề này hiện nằm ngoài thông tin em đang nắm giữ. Em đã ghi nhận và chuyển câu hỏi này cho Quản trị viên hỗ trợ giải đáp cho Anh/Chị sớm nhất nhé ạ!"
+        },
+        documents: [
+          {
+            id: "doc_laiho_1",
+            title: "Quy trình đặt xe & Thông tin chung Laiho",
+            content: "- Các bước đặt tài xế lái hộ trên app Laiho:\n  + Nhập Điểm đón/Điểm đi\n  + Chọn dịch vụ Tài xế Ô tô / Tài xế Xe máy / Tài xế đi tỉnh / Xe tải Van điện\n  + Chọn phương thức thanh toán\n  + Nhập mã khuyến mãi (nếu có)\n  + Chọn Đặt xe để hệ thống tìm tài xế gần nhất\n- Tải app tại: https://laiho.vn/",
+            active: true,
+            updatedAt: "Hôm nay"
+          },
+          {
+            id: "doc_laiho_2",
+            title: "Quy định chuyến đi & Giá cước",
+            content: "- Thuế VAT áp dụng cho các chuyến đi là 8%.\n- Phí dịch vụ (thu thêm ngoài cước): 10.000 VNĐ đối với xe ô tô và 7.000 VNĐ đối với xe máy.\n- Hệ thống điều chỉnh giảm giá chuyến cho khách đặt để tăng lượng khách.\n- Quy định khi khách đặt không có tài xế nhận: Bộ phận Điều phối sẽ chủ động gọi khách trước, tuyệt đối không để tài xế tự thỏa thuận (deal) giá.\n- Đã bãi bỏ chính sách gán chuyến không ăn chia đối với tài xế.\n- Hệ thống đã đấu nối thêm phương tiện xe tải Van điện lên app Laiho.",
+            active: true,
+            updatedAt: "Hôm nay"
+          },
+          {
+            id: "doc_laiho_3",
+            title: "Yêu cầu hồ sơ & Chiết khấu cho Tài xế",
+            content: "- Yêu cầu đăng ký:\n  + GPLX hạng A hoặc B2 trở lên (còn hạn).\n  + Kinh nghiệm lái xe >3 năm.\n  + CMND/CCCD và đã khai báo VNEID cấp 2.\n  + Giấy khám sức khỏe mẫu TT36.\n- Tỷ lệ chiết khấu:\n  + Tài xế ô tô: 75% - 25% (Tài xế nhận 75%).\n  + Tài xế xe máy: 80% - 20% (Tài xế nhận 80%).\n- Ưu đãi đặc biệt 1: Nộp kèm Lý lịch tư pháp hoặc Giấy xác nhận hạnh kiểm tại địa phương ➔ Hưởng ưu đãi chiết khấu xe hơi 12 tháng.\n- Ưu đãi đặc biệt 2: Tài xế giới thiệu khách tải app, khi khách đó đặt chuyến cho chính tài xế đó, tài xế được cộng thêm 5% doanh thu trước thuế và phí.\n- Chi phí ban đầu:\n  + Đồng phục (1 áo sơ mi + 1 áo khoác): Tặng đồng phục 100% khi Bác tài nhận 1 cuốc trên app (thay vì 230.000đ).\n  + Nạp ví tài xế tối thiểu: 200.000 VNĐ.",
+            active: true,
+            updatedAt: "Hôm nay"
+          },
+          {
+            id: "doc_laiho_4",
+            title: "Chính sách Quán đối tác & Chi nhánh",
+            content: "- Chính sách Quán đối tác: Tất cả các quán đối tác khi đặt chuyến thành công sẽ được hưởng 5% doanh thu trước thuế và phí.\n- Địa chỉ chi nhánh đăng ký trực tiếp (Thời gian: 8h - 17h từ Thứ 2 đến Thứ 6):\n  + Hà Nội: Lô 7 LK 16 B1.1 Khu Đô Thị Thanh Hà, Xã Bình Minh, TP Hà Nội.\n  + Hồ Chí Minh: 132 Lê Tuấn Mậu, Phường 13, Quận 6, TP.HCM.",
+            active: true,
+            updatedAt: "Hôm nay"
+          }
+        ],
+        conversations: {}
+      };
+      await pool.query('INSERT INTO settings (\`key\`, \`value\`) VALUES (?, ?)', ['app_data', JSON.stringify(defaultData)]);
+    }
+    console.log("✅ Kết nối và khởi tạo MySQL thành công!");
+  } catch (err) {
+    console.error("❌ Lỗi khởi tạo cơ sở dữ liệu MySQL:", err);
   }
 }
 
-function saveDB(data) {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+initDB();
+
+async function loadDB() {
+  try {
+    const [rows] = await pool.query('SELECT \`value\` FROM settings WHERE \`key\` = ?', ['app_data']);
+    if (rows.length > 0) {
+      return JSON.parse(rows[0].value);
+    }
+  } catch (e) {
+    console.error("Lỗi đọc DB từ MySQL:", e);
   }
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+  return null;
+}
+
+async function saveDB(data) {
+  try {
+    await pool.query('UPDATE settings SET \`value\` = ? WHERE \`key\` = ?', [JSON.stringify(data), 'app_data']);
+  } catch (e) {
+    console.error("Lỗi lưu DB vào MySQL:", e);
+  }
 }
 
 function broadcastToAdmins(eventType, payload) {
@@ -449,26 +522,27 @@ app.get('/api/stream', (req, res) => {
 // ==========================================
 // API QUẢN TRỊ & LIVE CHAT
 // ==========================================
-app.get('/api/data', (req, res) => {
-  res.json(loadDB());
+app.get('/api/data', async (req, res) => {
+  const db = await loadDB();
+  res.json(db);
 });
 
-app.post('/api/config', (req, res) => {
-  const db = loadDB();
+app.post('/api/config', async (req, res) => {
+  const db = await loadDB();
   db.config = { ...db.config, ...req.body };
-  saveDB(db);
+  await saveDB(db);
   res.json({ success: true, config: db.config });
 });
 
-app.post('/api/persona', (req, res) => {
-  const db = loadDB();
+app.post('/api/persona', async (req, res) => {
+  const db = await loadDB();
   db.persona = { ...db.persona, ...req.body };
-  saveDB(db);
+  await saveDB(db);
   res.json({ success: true, persona: db.persona });
 });
 
-app.post('/api/documents', (req, res) => {
-  const db = loadDB();
+app.post('/api/documents', async (req, res) => {
+  const db = await loadDB();
   const { action, doc, id } = req.body;
   if (action === 'add') {
     db.documents.unshift({ id: 'doc_' + Date.now(), title: doc.title, content: doc.content, active: true, updatedAt: new Date().toLocaleDateString('vi-VN') });
@@ -481,14 +555,13 @@ app.post('/api/documents', (req, res) => {
   } else if (action === 'delete') {
     db.documents = db.documents.filter(d => d.id !== id);
   }
-  saveDB(db);
+  await saveDB(db);
   res.json({ success: true, documents: db.documents });
 });
 
-// Quản trị viên gửi tin nhắn thủ công từ khung chat Admin ra Messenger thật
 app.post('/api/conversations/reply', async (req, res) => {
   const { senderId, text } = req.body;
-  const db = loadDB();
+  const db = await loadDB();
   try {
     await sendFacebookMessage(senderId, text, db.config.pageAccessToken);
 
@@ -500,7 +573,7 @@ app.post('/api/conversations/reply', async (req, res) => {
     db.conversations[senderId].messages.push({ sender: 'admin', text, time: timeStr });
     db.conversations[senderId].lastMessage = `Admin: ${text}`;
     db.conversations[senderId].updatedAt = Date.now();
-    saveDB(db);
+    await saveDB(db);
 
     broadcastToAdmins('CONVERSATION_UPDATED', { conversation: db.conversations[senderId] });
     res.json({ success: true, conversation: db.conversations[senderId] });
@@ -509,13 +582,13 @@ app.post('/api/conversations/reply', async (req, res) => {
   }
 });
 
-app.post('/api/conversations/status', (req, res) => {
+app.post('/api/conversations/status', async (req, res) => {
   const { senderId, aiEnabled, needsAdmin, markRead } = req.body;
-  const db = loadDB();
+  const db = await loadDB();
   if (db.conversations[senderId]) {
     if (aiEnabled !== undefined) db.conversations[senderId].aiEnabled = aiEnabled;
     if (needsAdmin !== undefined) db.conversations[senderId].needsAdmin = needsAdmin;
-    saveDB(db);
+    await saveDB(db);
     broadcastToAdmins('CONVERSATION_UPDATED', { conversation: db.conversations[senderId] });
   }
   res.json({ success: true });
@@ -535,7 +608,7 @@ app.post('/api/test-chat', async (req, res) => {
 // XỬ LÝ TRÍ TUỆ NHÂN TẠO THÔNG MINH
 // ==========================================
 async function generateAIResponse(userMessage) {
-  const db = loadDB();
+  const db = await loadDB();
   const { config, persona, documents } = db;
   const activeDocs = documents.filter(d => d.active);
   const knowledgeText = activeDocs.map((d, idx) => `--- TÀI LIỆU ${idx + 1}: ${d.title} ---\n${d.content}`).join('\n\n');
@@ -544,7 +617,7 @@ async function generateAIResponse(userMessage) {
 Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
 
 QUY TẮC PHẢN HỒI THÔNG MINH:
-1. Khách hàng thường nhắn tin bằng tiếng Việt không dấu, viết tắt, hoặc diễn đạt bằng ngôn từ đời thường. Bạn phải CỐ GẮNG HẾT SỨC suy luận ngữ cảnh, quy đổi các từ không dấu/viết tắt (VD: "gia cuoc", "phi ship", "dk tai xe", "chiet khau", "đ/c", "hcm", "hn") về đúng nghĩa nghiệp vụ trong tài liệu để trả lời chuẩn xác.
+1. Khách hàng thường nhắn tin bằng tiếng Việt không dấu, viết tắt, hoặc diễn đạt bằng ngôn từ đời thường. Bạn phải CỐ GẮNG HẾT SỨC suy luận ngữ cảnh, quy đổi các từ không dấu/viết tắt về đúng nghĩa nghiệp vụ trong tài liệu để trả lời chuẩn xác.
 2. Chỉ sử dụng thông tin trong [TÀI LIỆU CÔNG TY] bên dưới để tư vấn. Không tự bịa đặt dữ liệu ngoài tài liệu.
 3. Nếu sau khi đã cố gắng suy luận ngữ cảnh mà vấn đề hoàn toàn KHÔNG CÓ TRONG TÀI LIỆU, bạn PHẢI trả lời nguyên văn câu dự phòng sau đây: "${persona.fallback}"
 
@@ -589,8 +662,8 @@ ${knowledgeText}`;
 // ==========================================
 // WEBHOOK FACEBOOK MESSENGER
 // ==========================================
-app.get('/webhook', (req, res) => {
-  const db = loadDB();
+app.get('/webhook', async (req, res) => {
+  const db = await loadDB();
   if (req.query['hub.mode'] === 'subscribe' && req.query['hub.verify_token'] === db.config.verifyToken) {
     console.log('✅ WEBHOOK_VERIFIED: Facebook đã kết nối thành công!');
     res.status(200).send(req.query['hub.challenge']);
@@ -603,7 +676,7 @@ app.post('/webhook', async (req, res) => {
   const body = req.body;
   if (body.object === 'page') {
     res.status(200).send('EVENT_RECEIVED');
-    const db = loadDB();
+    const db = await loadDB();
     if (!db.config.botActive) return;
 
     for (const entry of body.entry) {
@@ -613,11 +686,8 @@ app.post('/webhook', async (req, res) => {
         const text = event.message.text;
         const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN');
 
-        // Khởi tạo thông tin khách mới nếu chưa có
         if (!db.conversations[senderPsid]) {
-          // GỌI API LẤY TÊN VÀ AVATAR THẬT TỪ FACEBOOK
           const fbProfile = await getFacebookUserProfile(senderPsid, db.config.pageAccessToken);
-
           db.conversations[senderPsid] = {
             senderId: senderPsid,
             userName: fbProfile.fullName,
@@ -636,7 +706,6 @@ app.post('/webhook', async (req, res) => {
         if (conv.aiEnabled && db.config.botActive) {
           try {
             const aiResult = await generateAIResponse(text);
-            
             await sendFacebookMessage(senderPsid, aiResult.reply, db.config.pageAccessToken);
 
             conv.messages.push({ sender: 'ai', text: aiResult.reply, time: timeStr, needsAdmin: aiResult.needsAdmin });
@@ -652,7 +721,7 @@ app.post('/webhook', async (req, res) => {
           conv.needsAdmin = true;
         }
 
-        saveDB(db);
+        await saveDB(db);
 
         broadcastToAdmins('NEW_CUSTOMER_MESSAGE', {
           conversation: conv,
@@ -665,57 +734,31 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
-// async function sendFacebookMessage(recipientId, text, token) {
-//   if (!token) throw new Error("Chưa nhập Page Access Token!");
-//   await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token.trim()}`, {
-//     method: 'POST',
-//     headers: { 'Content-Type': 'application/json' },
-//     body: JSON.stringify({ recipient: { id: recipientId }, message: { text } })
-//   });
-// }
-
 async function sendFacebookMessage(recipientId, text, token) {
-  if (!token) {
-    console.error("❌ LỖI GỬI FB: Chưa nhập Page Access Token trên giao diện quản trị!");
-    throw new Error("Chưa nhập Page Access Token!");
-  }
-
+  if (!token) throw new Error("Chưa nhập Page Access Token!");
   const url = `https://graph.facebook.com/v19.0/me/messages?access_token=${token.trim()}`;
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      recipient: { id: recipientId },
-      message: { text: text }
-    })
+    body: JSON.stringify({ recipient: { id: recipientId }, message: { text: text } })
   });
-
   const data = await response.json();
-  
   if (!response.ok || data.error) {
-    console.error("❌ FACEBOOK API TỪ CHỐI GỬI TIN NHẮN:", JSON.stringify(data.error || data));
     throw new Error(data.error?.message || "Lỗi gọi Facebook Graph API");
   }
-
-  console.log(`🤖 Đã đẩy tin nhắn ra Messenger thành công cho khách (${recipientId})!`);
 }
 
-// Hàm gọi Facebook Graph API để lấy Tên và Avatar thật của khách hàng
 async function getFacebookUserProfile(senderId, pageAccessToken) {
   try {
     const url = `https://graph.facebook.com/v19.0/${senderId}?fields=first_name,last_name,profile_pic&access_token=${pageAccessToken.trim()}`;
     const response = await fetch(url);
     const data = await response.json();
     if (response.ok && !data.error) {
-      const firstName = data.first_name || '';
-      const lastName = data.last_name || '';
-      const fullName = (firstName + ' ' + lastName).trim() || `Khách ${senderId.slice(-4)}`;
+      const fullName = (data.first_name + ' ' + data.last_name).trim() || `Khách ${senderId.slice(-4)}`;
       const avatar = data.profile_pic || '';
       return { fullName, avatar };
     }
-  } catch (e) {
-    console.error("Không lấy được profile Facebook của khách:", e.message);
-  }
+  } catch (e) {}
   return { fullName: `Khách ${senderId.slice(-4)}`, avatar: '' };
 }
 
