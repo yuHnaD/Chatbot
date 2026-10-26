@@ -909,104 +909,200 @@ app.post('/api/test-chat', async (req, res) => {
 // }
 
 //BẢN TEST
+// async function generateAIResponse(userMessage, conversationHistory = []) {
+//   const db = await loadDB();
+//   const { config, persona, documents } = db;
+//   const activeDocs = documents.filter(d => d.active);
+//   const knowledgeText = activeDocs.map((d, idx) => `--- TÀI LIỆU ${idx + 1}: ${d.title} ---\n${d.content}`).join('\n\n');
+
+//   // Lọc ra các tài liệu mà Admin ĐÃ BẬT CHUÔNG BÁO 🔔
+//   const alertDocs = activeDocs.filter(d => d.alertAdmin);
+//   const alertDocsText = alertDocs.map((d, idx) => `- [BÁO ĐỎ 🔔] Tiêu đề: ${d.title}\n  Nội dung: ${d.content}`).join('\n\n');
+
+//   const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty. Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
+
+// QUY TẮC PHẢN HỒI:
+// 1. DỰA VÀO LỊCH SỬ TRÒ CHUYỆN: Ghi nhớ thông tin khách đã cung cấp (Tên, SĐT, Điểm đi/đến).
+// 2. TỰ SUY LUẬN NGỮ CẢNH: Khách thường nhắn tiếng Việt không dấu, viết tắt (VD: "dat le", "dat chuyen le", "dat xe"). Hãy suy luận đúng ý định nghiệp vụ.
+// 3. BẢNG GIÁ LÁI HỘ:
+//    - Xe máy: 73.000 VNĐ (1km đầu) + 5.000 VNĐ/km tiếp theo.
+//    - Ô tô: 120.000 VNĐ (1km đầu) + 7.000 VNĐ/km tiếp theo.
+// 4. Nếu thông tin hoàn toàn KHÔNG CÓ trong tài liệu, bạn CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau: "${persona.fallback}"
+
+// [TÀI LIỆU CÔNG TY & QUY ĐỊNH CHUNG]:
+// ${knowledgeText}
+
+// [DANH MỤC TÀI LIỆU CẦN BÁO ĐỎ CHO QUẢN TRỊ VIÊN KHI KHÁCH NHẮN ĐẾN]:
+// ${alertDocsText}`;
+
+//   if (!config.aiApiKey) return { reply: "Chưa cấu hình API Key trên web quản trị!", needsAdmin: false };
+
+//   const recentHistory = conversationHistory.slice(-10);
+//   let replyText = "";
+
+//   if (config.aiProvider === 'gemini') {
+//     const model = config.aiModel || 'gemini-2.5-flash';
+//     const contents = [
+//       ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'model', parts: [{ text: m.text }] })),
+//       { role: 'user', parts: [{ text: userMessage }] }
+//     ];
+
+//     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.aiApiKey.trim()}`, {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ system_instruction: { parts: [{ text: systemInstruction }] }, contents, generationConfig: { temperature: 0.2 } })
+//     });
+//     const data = await res.json();
+//     replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || persona.fallback;
+//   } else {
+//     const model = config.aiModel || 'gpt-4o-mini';
+//     const messages = [
+//       { role: 'system', content: systemInstruction },
+//       ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'assistant', content: m.text })),
+//       { role: 'user', content: userMessage }
+//     ];
+
+//     const res = await fetch('https://api.openai.com/v1/chat/completions', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.aiApiKey.trim()}` },
+//       body: JSON.stringify({ model, messages, temperature: 0.2 })
+//     });
+//     const data = await res.json();
+//     replyText = data.choices?.[0]?.message?.content || persona.fallback;
+//   }
+
+//   // -------------------------------------------------------------
+//   // ĐỐI SOÁT THÔNG MINH: KIỂM TRA KHỚP TIÊU ĐỀ HOẶC NỘI DUNG TÀI LIỆU BẬT CHUÔNG
+//   // -------------------------------------------------------------
+//   const userMsgLower = userMessage.toLowerCase();
+//   const replyLower = replyText.toLowerCase();
+
+//   // Hàm chuyển đổi tiếng Việt có dấu thành không dấu để so khớp linh hoạt
+//   const removeTones = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+//   const cleanUserMsg = removeTones(userMessage);
+
+//   const isAlertDocTriggered = alertDocs.some(d => {
+//     const cleanTitle = removeTones(d.title);
+//     const cleanContent = removeTones(d.content);
+
+//     // Kiểm tra nếu tin nhắn của khách hoặc câu trả lời của AI khớp với tiêu đề hoặc nội dung chi tiết
+//     const matchesTitle = cleanUserMsg.includes(cleanTitle) || cleanTitle.includes(cleanUserMsg) || replyLower.includes(d.title.toLowerCase());
+    
+//     // Kiểm tra từng dòng trong nội dung chi tiết của tài liệu bật báo
+//     const contentLines = d.content.toLowerCase().split('\n');
+//     const matchesContent = contentLines.some(line => {
+//       const cleanLine = removeTones(line.replace(/^[-+*]\s*/, '').trim());
+//       return cleanLine.length > 4 && (cleanUserMsg.includes(cleanLine) || cleanLine.includes(cleanUserMsg));
+//     });
+
+//     return matchesTitle || matchesContent;
+//   });
+
+//   // Kiểm tra khách gửi Số điện thoại
+//   const phoneRegex = /(\+84|0[3|5|7|8|9])+([0-9]{8})\b/;
+//   const hasPhoneNumber = phoneRegex.test(userMessage);
+
+//   // Kiểm tra AI bí câu trả lời (dùng fallback)
+//   const isFallback = replyText.trim().startsWith(persona.fallback.trim()) || replyText.trim() === persona.fallback.trim();
+
+//   // Tổng hợp cờ báo đỏ cho Admin
+//   const needsAdmin = isAlertDocTriggered || hasPhoneNumber || isFallback;
+
+//   return { reply: replyText, needsAdmin };
+// }
+
+//BẢN TEST 2
 async function generateAIResponse(userMessage, conversationHistory = []) {
   const db = await loadDB();
   const { config, persona, documents } = db;
   const activeDocs = documents.filter(d => d.active);
-  const knowledgeText = activeDocs.map((d, idx) => `--- TÀI LIỆU ${idx + 1}: ${d.title} ---\n${d.content}`).join('\n\n');
-
-  // Lọc ra các tài liệu mà Admin ĐÃ BẬT CHUÔNG BÁO 🔔
+  
+  // Phân loại tài liệu thường và tài liệu BẬT CHUÔNG 🔔
+  const regularDocs = activeDocs.filter(d => !d.alertAdmin);
   const alertDocs = activeDocs.filter(d => d.alertAdmin);
-  const alertDocsText = alertDocs.map((d, idx) => `- [BÁO ĐỎ 🔔] Tiêu đề: ${d.title}\n  Nội dung: ${d.content}`).join('\n\n');
 
-  const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty. Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
+  const regularText = regularDocs.map((d, i) => `[Tài liệu ${i+1}]: ${d.title}\n${d.content}`).join('\n\n');
+  const alertText = alertDocs.map((d, i) => `[TÀI LIỆU BÁO ĐỎ 🔔 - ${i+1}]: ${d.title}\n${d.content}`).join('\n\n');
 
-QUY TẮC PHẢN HỒI:
-1. DỰA VÀO LỊCH SỬ TRÒ CHUYỆN: Ghi nhớ thông tin khách đã cung cấp (Tên, SĐT, Điểm đi/đến).
-2. TỰ SUY LUẬN NGỮ CẢNH: Khách thường nhắn tiếng Việt không dấu, viết tắt (VD: "dat le", "dat chuyen le", "dat xe"). Hãy suy luận đúng ý định nghiệp vụ.
-3. BẢNG GIÁ LÁI HỘ:
-   - Xe máy: 73.000 VNĐ (1km đầu) + 5.000 VNĐ/km tiếp theo.
-   - Ô tô: 120.000 VNĐ (1km đầu) + 7.000 VNĐ/km tiếp theo.
-4. Nếu thông tin hoàn toàn KHÔNG CÓ trong tài liệu, bạn CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau: "${persona.fallback}"
+  const systemInstruction = `Bạn là trợ lý AI thông minh dịch vụ Lái Hộ của công ty. Tên: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
 
-[TÀI LIỆU CÔNG TY & QUY ĐỊNH CHUNG]:
-${knowledgeText}
+Nhiệm vụ của bạn là đọc tin nhắn của khách (kể cả viết tắt, không dấu) và trả về định dạng JSON duy nhất gồm 2 trường:
+{
+  "reply": "Câu trả lời thân thiện cho khách...",
+  "triggerAlert": true (hoặc false)
+}
 
-[DANH MỤC TÀI LIỆU CẦN BÁO ĐỎ CHO QUẢN TRỊ VIÊN KHI KHÁCH NHẮN ĐẾN]:
-${alertDocsText}`;
+QUY TẮC BÁO ĐỎ (triggerAlert):
+- Gán "triggerAlert": true nếu nội dung câu hỏi/ý định của khách hoặc câu trả lời liên quan/chạm tới bất kỳ [TÀI LIỆU BÁO ĐỎ 🔔] nào bên dưới.
+- Gán "triggerAlert": false nếu chỉ dùng thông tin trong tài liệu thông thường.
+
+QUY TẮC TRẢ LỜI (reply):
+1. Dựa vào LỊCH SỬ TRÒ CHUYỆN để nhớ ngữ cảnh.
+2. Nếu thông tin KHÔNG CÓ trong cả 2 danh mục tài liệu, dùng nguyên văn câu fallback: "${persona.fallback}" và gán "triggerAlert": true.
+
+[TÀI LIỆU THÔNG THƯỜNG]:
+${regularText}
+
+[TÀI LIỆU BÁO ĐỎ 🔔]:
+${alertText}`;
 
   if (!config.aiApiKey) return { reply: "Chưa cấu hình API Key trên web quản trị!", needsAdmin: false };
 
   const recentHistory = conversationHistory.slice(-10);
   let replyText = "";
+  let aiTriggerAlert = false;
 
-  if (config.aiProvider === 'gemini') {
-    const model = config.aiModel || 'gemini-2.5-flash';
-    const contents = [
-      ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'model', parts: [{ text: m.text }] })),
-      { role: 'user', parts: [{ text: userMessage }] }
-    ];
+  try {
+    if (config.aiProvider === 'gemini') {
+      const model = config.aiModel || 'gemini-2.5-flash';
+      const contents = [
+        ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'model', parts: [{ text: m.text }] })),
+        { role: 'user', parts: [{ text: userMessage }] }
+      ];
 
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.aiApiKey.trim()}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ system_instruction: { parts: [{ text: systemInstruction }] }, contents, generationConfig: { temperature: 0.2 } })
-    });
-    const data = await res.json();
-    replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || persona.fallback;
-  } else {
-    const model = config.aiModel || 'gpt-4o-mini';
-    const messages = [
-      { role: 'system', content: systemInstruction },
-      ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'assistant', content: m.text })),
-      { role: 'user', content: userMessage }
-    ];
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.aiApiKey.trim()}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          system_instruction: { parts: [{ text: systemInstruction }] }, 
+          contents, 
+          generationConfig: { temperature: 0.1, responseMimeType: "application/json" } 
+        })
+      });
+      const data = await res.json();
+      const rawJson = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const parsed = JSON.parse(rawJson);
+      replyText = parsed.reply;
+      aiTriggerAlert = parsed.triggerAlert;
+    } else {
+      const model = config.aiModel || 'gpt-4o-mini';
+      const messages = [
+        { role: 'system', content: systemInstruction },
+        ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'assistant', content: m.text })),
+        { role: 'user', content: userMessage }
+      ];
 
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.aiApiKey.trim()}` },
-      body: JSON.stringify({ model, messages, temperature: 0.2 })
-    });
-    const data = await res.json();
-    replyText = data.choices?.[0]?.message?.content || persona.fallback;
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.aiApiKey.trim()}` },
+        body: JSON.stringify({ model, messages, temperature: 0.1, response_format: { type: "json_object" } })
+      });
+      const data = await res.json();
+      const parsed = JSON.parse(data.choices?.[0]?.message?.content);
+      replyText = parsed.reply;
+      aiTriggerAlert = parsed.triggerAlert;
+    }
+  } catch (err) {
+    console.error("Lỗi parse AI response:", err);
+    replyText = persona.fallback;
+    aiTriggerAlert = true;
   }
 
-  // -------------------------------------------------------------
-  // ĐỐI SOÁT THÔNG MINH: KIỂM TRA KHỚP TIÊU ĐỀ HOẶC NỘI DUNG TÀI LIỆU BẬT CHUÔNG
-  // -------------------------------------------------------------
-  const userMsgLower = userMessage.toLowerCase();
-  const replyLower = replyText.toLowerCase();
-
-  // Hàm chuyển đổi tiếng Việt có dấu thành không dấu để so khớp linh hoạt
-  const removeTones = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
-  const cleanUserMsg = removeTones(userMessage);
-
-  const isAlertDocTriggered = alertDocs.some(d => {
-    const cleanTitle = removeTones(d.title);
-    const cleanContent = removeTones(d.content);
-
-    // Kiểm tra nếu tin nhắn của khách hoặc câu trả lời của AI khớp với tiêu đề hoặc nội dung chi tiết
-    const matchesTitle = cleanUserMsg.includes(cleanTitle) || cleanTitle.includes(cleanUserMsg) || replyLower.includes(d.title.toLowerCase());
-    
-    // Kiểm tra từng dòng trong nội dung chi tiết của tài liệu bật báo
-    const contentLines = d.content.toLowerCase().split('\n');
-    const matchesContent = contentLines.some(line => {
-      const cleanLine = removeTones(line.replace(/^[-+*]\s*/, '').trim());
-      return cleanLine.length > 4 && (cleanUserMsg.includes(cleanLine) || cleanLine.includes(cleanUserMsg));
-    });
-
-    return matchesTitle || matchesContent;
-  });
-
-  // Kiểm tra khách gửi Số điện thoại
+  // Bổ sung kiểm tra SĐT Việt Nam
   const phoneRegex = /(\+84|0[3|5|7|8|9])+([0-9]{8})\b/;
   const hasPhoneNumber = phoneRegex.test(userMessage);
 
-  // Kiểm tra AI bí câu trả lời (dùng fallback)
-  const isFallback = replyText.trim().startsWith(persona.fallback.trim()) || replyText.trim() === persona.fallback.trim();
-
-  // Tổng hợp cờ báo đỏ cho Admin
-  const needsAdmin = isAlertDocTriggered || hasPhoneNumber || isFallback;
+  const needsAdmin = aiTriggerAlert || hasPhoneNumber;
 
   return { reply: replyText, needsAdmin };
 }
