@@ -816,11 +816,32 @@ async function generateAIResponse(userMessage, conversationHistory = []) {
   const activeDocs = documents.filter(d => d.active);
   const knowledgeText = activeDocs.map((d, idx) => `--- TÀI LIỆU ${idx + 1}: ${d.title} ---\n${d.content}`).join('\n\n');
 
+//   const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty. Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
+// QUY TẮC:
+// 1. Dựa vào LỊCH SỬ TRÒ CHUYỆN bên dưới để nhớ ngữ cảnh khách đang trao đổi.
+// 2. Chỉ dùng thông tin trong [TÀI LIỆU CÔNG TY]. Không tự bịa đặt.
+// 3. Nếu thông tin KHÔNG CÓ trong tài liệu, bạn CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau, KHÔNG ĐƯỢC THÊM BỚT BẤT KỲ TỪ NÀO KHÁC: "${persona.fallback}"
+
+// [TÀI LIỆU CÔNG TY]:
+// ${knowledgeText}`;
+
   const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty. Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
-QUY TẮC:
-1. Dựa vào LỊCH SỬ TRÒ CHUYỆN bên dưới để nhớ ngữ cảnh khách đang trao đổi.
-2. Chỉ dùng thông tin trong [TÀI LIỆU CÔNG TY]. Không tự bịa đặt.
-3. Nếu thông tin KHÔNG CÓ trong tài liệu, bạn CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau, KHÔNG ĐƯỢC THÊM BỚT BẤT KỲ TỪ NÀO KHÁC: "${persona.fallback}"
+
+QUY TẮC PHẢN HỒI & TÍNH GIÁ CƯỚC THÔNG MINH:
+1. DỰA VÀO LỊCH SỬ TRÒ CHUYỆN: Theo dõi toàn bộ cuộc hội thoại để nhận biết khi nào khách hàng cung cấp ĐIỂM ĐÓN và ĐIỂM TRẢ (ví dụ: đón ở Hà Đông, trả ở Cầu Giấy).
+
+2. TỰ ƯỚC TÍNH KHỎANG CÁCH & TÍNH GIÁ:
+   - Nếu khách hàng cung cấp điểm đón và điểm trả, hãy tự tra cứu/ước tính khoảng cách (theo tuyến đường đi thực tế trên Google Maps) giữa 2 địa điểm đó (đơn vị: km).
+   - Tra cứu BẢNG GIÁ DỊCH VỤ trong [TÀI LIỆU CÔNG TY] bên dưới (mức giá theo từng mốc km, phí dịch vụ xe máy/ô tô, thuế VAT nếu có).
+   - Áp dụng công thức tính tổng cước chuyến đi = (Cước khoảng cách + Phí dịch vụ) x Thuế/Chính sách áp dụng.
+   - Báo giá rõ ràng cho khách gồm:
+     + Ước tính khoảng cách (VD: khoảng 8 km).
+     + Chi tiết cước phí ước tính theo từng loại phương tiện (Ô tô / Xe máy).
+     + Lưu ý với khách đây là giá ước tính, giá chính xác nhất sẽ hiển thị trên app khi đặt chuyến.
+
+3. QUY TẮC TRẢ LỜI KHÁC:
+   - Chỉ dùng thông tin trong [TÀI LIỆU CÔNG TY]. Không tự bịa đặt ưu đãi/bảng giá ngoài tài liệu.
+   - Nếu thông tin hoàn toàn KHÔNG CÓ trong tài liệu và không liên quan đến hỏi giá/đặt xe, CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau: "${persona.fallback}"
 
 [TÀI LIỆU CÔNG TY]:
 ${knowledgeText}`;
@@ -1015,86 +1036,6 @@ async function getFacebookUserProfile(senderId, pageAccessToken) {
     }
   } catch (e) {}
   return { fullName: `Khách ${senderId.slice(-4)}`, avatar: '' };
-}
-
-// Webhook nhận tin nhắn từ Zalo OA
-app.post('/zalo-webhook', async (req, res) => {
-  res.status(200).send('OK'); // Phản hồi ngay cho Zalo
-  const body = req.body;
-
-  // Kiểm tra sự kiện người dùng nhắn tin cho Zalo OA
-  if (body.event_name === 'user_send_text') {
-    const senderZaloId = body.sender.id;
-    const text = body.message.text;
-    const timeStr = getVietnamTimeString();
-    const db = await loadDB();
-
-    if (!db.config.botActive) return;
-
-    if (!db.conversations[senderZaloId]) {
-      db.conversations[senderZaloId] = {
-        senderId: senderZaloId,
-        userName: `Khách Zalo (${senderZaloId.slice(-4)})`,
-        userAvatar: '',
-        messages: [],
-        aiEnabled: true,
-        needsAdmin: false
-      };
-    }
-
-    const conv = db.conversations[senderZaloId];
-
-    if (conv.aiEnabled) {
-      try {
-        const historyBeforeNewMessage = [...conv.messages];
-
-        conv.messages.push({ sender: 'customer', text, time: timeStr });
-        conv.lastMessage = text;
-        conv.updatedAt = Date.now();
-
-        // Gọi AI xử lý (Dùng chung bộ não AI hiện tại)
-        const aiResult = await generateAIResponse(text, historyBeforeNewMessage);
-
-        // Gửi tin nhắn trả lời lại Zalo
-        await sendZaloMessage(senderZaloId, aiResult.reply, db.config.zaloAccessToken);
-
-        conv.messages.push({ sender: 'ai', text: aiResult.reply, time: timeStr, needsAdmin: aiResult.needsAdmin });
-        conv.lastMessage = `AI: ${aiResult.reply}`;
-
-        if (aiResult.needsAdmin) {
-          conv.needsAdmin = true;
-        }
-      } catch (e) {
-        console.error("Lỗi Zalo AI:", e.message);
-      }
-    }
-
-    await saveDB(db);
-    broadcastToAdmins('NEW_CUSTOMER_MESSAGE', { conversation: conv, alertAdmin: conv.needsAdmin });
-  }
-});
-
-async function sendZaloMessage(recipientId, text, token) {
-  if (!token) {
-    console.error("❌ LỖI ZALO: Chưa nhập Zalo Access Token trên web!");
-    return;
-  }
-  const url = `https://openapi.zalo.me/v3.0/oa/message/cs`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'access_token': token.trim()
-    },
-    body: JSON.stringify({
-      recipient: { user_id: recipientId },
-      message: { text: text }
-    })
-  });
-  const data = await response.json();
-  if (data.error !== 0) {
-    console.error("❌ Lỗi gửi tin Zalo OA:", JSON.stringify(data));
-  }
 }
 
 app.get('/', (req, res) => {
