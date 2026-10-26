@@ -327,6 +327,38 @@
             </div>
           </div>
 
+           <!-- KHỐI CẤU HÌNH ZALO OFFICIAL ACCOUNT -->
+          <div class="bg-white dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 space-y-4 shadow-sm mt-6">
+            <h3 class="font-semibold text-blue-500 flex items-center gap-2">
+              <i class="fa-solid fa-comment-dots"></i> Cấu hình Kết nối Zalo Official Account (Zalo OA)
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Zalo Webhook URL (Gắn vào Zalo Developer)</label>
+                <div class="flex">
+                  <input type="text" id="zaloWebhookUrlDisplay" readonly class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-l-xl px-3 py-2.5 text-sm text-emerald-600 dark:text-emerald-400 font-mono" />
+                  <button onclick="navigator.clipboard.writeText(document.getElementById('zaloWebhookUrlDisplay').value); showToast('Đã copy Zalo Webhook!');" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-4 rounded-r-xl text-sm font-medium">Copy</button>
+                </div>
+              </div>
+              <div>
+                <label class="text-sm font-medium block mb-1">Zalo App ID</label>
+                <input type="text" id="zaloAppId" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-800 dark:text-slate-100" placeholder="123456789..." />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-medium block mb-1">Zalo Secret Key</label>
+                <input type="password" id="zaloSecretKey" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-800 dark:text-slate-100" placeholder="Secret Key..." />
+              </div>
+              <div>
+                <label class="text-sm font-medium block mb-1">Zalo Access Token</label>
+                <input type="password" id="zaloAccessToken" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-800 dark:text-slate-100" placeholder="Zalo OA Access Token..." />
+              </div>
+            </div>
+          </div>
+
           <button onclick="saveConnectionConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 shadow">
             <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình Kết Nối
           </button>
@@ -684,6 +716,11 @@
       document.getElementById('tone').value = appData.persona.tone || '';
       document.getElementById('fallback').value = appData.persona.fallback || '';
 
+      document.getElementById('zaloWebhookUrlDisplay').value = window.location.origin + '/zalo-webhook';
+      document.getElementById('zaloAppId').value = appData.config.zaloAppId || '';
+      document.getElementById('zaloSecretKey').value = appData.config.zaloSecretKey || '';
+      document.getElementById('zaloAccessToken').value = appData.config.zaloAccessToken || '';
+
       renderDocuments();
       renderConversationList();
     }
@@ -702,7 +739,11 @@
         verifyToken: document.getElementById('verifyToken').value,
         aiProvider: document.getElementById('aiProvider').value,
         aiApiKey: document.getElementById('aiApiKey').value,
-        aiModel: document.getElementById('aiModel').value
+        aiModel: document.getElementById('aiModel').value,
+
+        zaloAppId: document.getElementById('zaloAppId').value,
+        zaloSecretKey: document.getElementById('zaloSecretKey').value,
+        zaloAccessToken: document.getElementById('zaloAccessToken').value,
       };
       updateBotBadge(payload.botActive);
       await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });

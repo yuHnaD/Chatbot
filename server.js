@@ -1017,6 +1017,86 @@ async function getFacebookUserProfile(senderId, pageAccessToken) {
   return { fullName: `Khách ${senderId.slice(-4)}`, avatar: '' };
 }
 
+// Webhook nhận tin nhắn từ Zalo OA
+app.post('/zalo-webhook', async (req, res) => {
+  res.status(200).send('OK'); // Phản hồi ngay cho Zalo
+  const body = req.body;
+
+  // Kiểm tra sự kiện người dùng nhắn tin cho Zalo OA
+  if (body.event_name === 'user_send_text') {
+    const senderZaloId = body.sender.id;
+    const text = body.message.text;
+    const timeStr = getVietnamTimeString();
+    const db = await loadDB();
+
+    if (!db.config.botActive) return;
+
+    if (!db.conversations[senderZaloId]) {
+      db.conversations[senderZaloId] = {
+        senderId: senderZaloId,
+        userName: `Khách Zalo (${senderZaloId.slice(-4)})`,
+        userAvatar: '',
+        messages: [],
+        aiEnabled: true,
+        needsAdmin: false
+      };
+    }
+
+    const conv = db.conversations[senderZaloId];
+
+    if (conv.aiEnabled) {
+      try {
+        const historyBeforeNewMessage = [...conv.messages];
+
+        conv.messages.push({ sender: 'customer', text, time: timeStr });
+        conv.lastMessage = text;
+        conv.updatedAt = Date.now();
+
+        // Gọi AI xử lý (Dùng chung bộ não AI hiện tại)
+        const aiResult = await generateAIResponse(text, historyBeforeNewMessage);
+
+        // Gửi tin nhắn trả lời lại Zalo
+        await sendZaloMessage(senderZaloId, aiResult.reply, db.config.zaloAccessToken);
+
+        conv.messages.push({ sender: 'ai', text: aiResult.reply, time: timeStr, needsAdmin: aiResult.needsAdmin });
+        conv.lastMessage = `AI: ${aiResult.reply}`;
+
+        if (aiResult.needsAdmin) {
+          conv.needsAdmin = true;
+        }
+      } catch (e) {
+        console.error("Lỗi Zalo AI:", e.message);
+      }
+    }
+
+    await saveDB(db);
+    broadcastToAdmins('NEW_CUSTOMER_MESSAGE', { conversation: conv, alertAdmin: conv.needsAdmin });
+  }
+});
+
+async function sendZaloMessage(recipientId, text, token) {
+  if (!token) {
+    console.error("❌ LỖI ZALO: Chưa nhập Zalo Access Token trên web!");
+    return;
+  }
+  const url = `https://openapi.zalo.me/v3.0/oa/message/cs`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'access_token': token.trim()
+    },
+    body: JSON.stringify({
+      recipient: { user_id: recipientId },
+      message: { text: text }
+    })
+  });
+  const data = await response.json();
+  if (data.error !== 0) {
+    console.error("❌ Lỗi gửi tin Zalo OA:", JSON.stringify(data));
+  }
+}
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
