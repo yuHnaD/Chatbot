@@ -810,49 +810,134 @@ app.post('/api/test-chat', async (req, res) => {
 //   return { reply: replyText, needsAdmin };
 // }
 
+// BẢN GỐC
+// async function generateAIResponse(userMessage, conversationHistory = []) {
+//   const db = await loadDB();
+//   const { config, persona, documents } = db;
+//   const activeDocs = documents.filter(d => d.active);
+//   const knowledgeText = activeDocs.map((d, idx) => `--- TÀI LIỆU ${idx + 1}: ${d.title} ---\n${d.content}`).join('\n\n');
+
+// //   const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty. Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
+// // QUY TẮC:
+// // 1. Dựa vào LỊCH SỬ TRÒ CHUYỆN bên dưới để nhớ ngữ cảnh khách đang trao đổi.
+// // 2. Chỉ dùng thông tin trong [TÀI LIỆU CÔNG TY]. Không tự bịa đặt.
+// // 3. Nếu thông tin KHÔNG CÓ trong tài liệu, bạn CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau, KHÔNG ĐƯỢC THÊM BỚT BẤT KỲ TỪ NÀO KHÁC: "${persona.fallback}"
+
+// // [TÀI LIỆU CÔNG TY]:
+// // ${knowledgeText}`;
+
+//   const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty. Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
+
+//   QUY TẮC PHẢN HỒI & TÍNH GIÁ CƯỚC THÔNG MINH:
+//   1. DỰA VÀO LỊCH SỬ TRÒ CHUYỆN: Theo dõi toàn bộ cuộc hội thoại để nhận biết khi nào khách hàng cung cấp ĐIỂM ĐÓN và ĐIỂM TRẢ (ví dụ: đón ở Hà Đông, trả ở Cầu Giấy).
+  
+//   2. TỰ ƯỚC TÍNH KHỎANG CÁCH & TÍNH GIÁ:
+//     - Nếu khách hàng cung cấp điểm đón và điểm trả, hãy tự tra cứu/ước tính khoảng cách (theo tuyến đường đi thực tế trên Google Maps) giữa 2 địa điểm đó (đơn vị: km).
+//     - Tra cứu BẢNG GIÁ DỊCH VỤ trong [TÀI LIỆU CÔNG TY] bên dưới (mức giá theo từng mốc km, phí dịch vụ xe máy/ô tô, thuế VAT nếu có).
+//     - Áp dụng công thức tính tổng cước chuyến đi = (Cước khoảng cách + Phí dịch vụ) x Thuế/Chính sách áp dụng.
+//     - Báo giá rõ ràng cho khách gồm:
+//       + Ước tính khoảng cách (VD: khoảng 8 km).
+//       + Chi tiết cước phí ước tính theo từng loại phương tiện (Ô tô / Xe máy).
+//       + Lưu ý với khách đây là giá ước tính, giá chính xác nhất sẽ hiển thị trên app khi đặt chuyến.
+
+//   3. QUY TẮC TRẢ LỜI KHÁC:
+//     - Chỉ dùng thông tin trong [TÀI LIỆU CÔNG TY]. Không tự bịa đặt ưu đãi/bảng giá ngoài tài liệu.
+//     - Nếu thông tin hoàn toàn KHÔNG CÓ trong tài liệu và không liên quan đến hỏi giá/đặt xe, CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau: "${persona.fallback}"
+
+//   [TÀI LIỆU CÔNG TY]:
+//   ${knowledgeText}`;
+
+//   if (!config.aiApiKey) return { reply: "Chưa cấu hình API Key trên web quản trị!", needsAdmin: false };
+
+//   const recentHistory = conversationHistory.slice(-10);
+
+//   // Lấy các tài liệu đã được BẬT CHUÔNG 🔔 (alertAdmin = true)
+//   const alertDocs = activeDocs.filter(d => d.alertAdmin);
+
+//   let replyText = "";
+
+//   if (config.aiProvider === 'gemini') {
+//     const model = config.aiModel || 'gemini-2.5-flash';
+//     const contents = [
+//       ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'model', parts: [{ text: m.text }] })),
+//       { role: 'user', parts: [{ text: userMessage }] }
+//     ];
+
+//     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.aiApiKey.trim()}`, {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ system_instruction: { parts: [{ text: systemInstruction }] }, contents, generationConfig: { temperature: 0.2 } })
+//     });
+//     const data = await res.json();
+//     replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || persona.fallback;
+//   } else {
+//     const model = config.aiModel || 'gpt-4o-mini';
+//     const messages = [
+//       { role: 'system', content: systemInstruction },
+//       ...recentHistory.map(m => ({ role: m.sender === 'customer' ? 'user' : 'assistant', content: m.text })),
+//       { role: 'user', content: userMessage }
+//     ];
+
+//     const res = await fetch('https://api.openai.com/v1/chat/completions', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.aiApiKey.trim()}` },
+//       body: JSON.stringify({ model, messages, temperature: 0.2 })
+//     });
+//     const data = await res.json();
+//     replyText = data.choices?.[0]?.message?.content || persona.fallback;
+//   }
+
+//   // 1. AI VẪN TRẢ LỜI KHÁCH BÌNH THƯỜNG (Dùng replyText thu được ở trên)
+
+//   // 2. ĐỒNG THỜI KIỂM TRA BÁO ĐỎ:
+//   // Nếu đụng tài liệu Bật Báo 🔔 OR AI trả lời câu Fallback ➔ Bật needsAdmin = true
+//   const isAlertDocTriggered = alertDocs.some(d => {
+//     const titleMatch = userMessage.toLowerCase().includes(d.title.toLowerCase()) || replyText.toLowerCase().includes(d.title.toLowerCase());
+//     const contentMatch = d.content.toLowerCase().split('\n').some(line => {
+//       const cleanLine = line.replace(/^[-+*]\s*/, '').trim();
+//       return cleanLine.length > 6 && userMessage.toLowerCase().includes(cleanLine.toLowerCase());
+//     });
+//     return titleMatch || contentMatch;
+//   });
+
+//   const isFallback = replyText.trim().startsWith(persona.fallback.trim()) || replyText.trim() === persona.fallback.trim();
+
+//   const needsAdmin = isAlertDocTriggered || isFallback;
+
+//   // Trả về cả câu trả lời của AI lẫn cờ báo đỏ
+//   return { reply: replyText, needsAdmin };
+// }
+
+//BẢN TEST
 async function generateAIResponse(userMessage, conversationHistory = []) {
   const db = await loadDB();
   const { config, persona, documents } = db;
   const activeDocs = documents.filter(d => d.active);
   const knowledgeText = activeDocs.map((d, idx) => `--- TÀI LIỆU ${idx + 1}: ${d.title} ---\n${d.content}`).join('\n\n');
 
-//   const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty. Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
-// QUY TẮC:
-// 1. Dựa vào LỊCH SỬ TRÒ CHUYỆN bên dưới để nhớ ngữ cảnh khách đang trao đổi.
-// 2. Chỉ dùng thông tin trong [TÀI LIỆU CÔNG TY]. Không tự bịa đặt.
-// 3. Nếu thông tin KHÔNG CÓ trong tài liệu, bạn CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau, KHÔNG ĐƯỢC THÊM BỚT BẤT KỲ TỪ NÀO KHÁC: "${persona.fallback}"
-
-// [TÀI LIỆU CÔNG TY]:
-// ${knowledgeText}`;
+  // Lọc ra các tài liệu mà Admin ĐÃ BẬT CHUÔNG BÁO 🔔
+  const alertDocs = activeDocs.filter(d => d.alertAdmin);
+  const alertDocsText = alertDocs.map((d, idx) => `- [BÁO ĐỎ 🔔] Tiêu đề: ${d.title}\n  Nội dung: ${d.content}`).join('\n\n');
 
   const systemInstruction = `Bạn là trợ lý AI thông minh chuyên tư vấn dịch vụ Lái Hộ của công ty. Tên bạn: "${persona.botName}". Xưng hô: "${persona.pronoun}". Phong cách: ${persona.tone}.
 
-QUY TẮC PHẢN HỒI & TÍNH GIÁ CƯỚC THÔNG MINH:
-1. DỰA VÀO LỊCH SỬ TRÒ CHUYỆN: Theo dõi toàn bộ cuộc hội thoại để nhận biết khi nào khách hàng cung cấp ĐIỂM ĐÓN và ĐIỂM TRẢ (ví dụ: đón ở Hà Đông, trả ở Cầu Giấy).
+QUY TẮC PHẢN HỒI:
+1. DỰA VÀO LỊCH SỬ TRÒ CHUYỆN: Ghi nhớ thông tin khách đã cung cấp (Tên, SĐT, Điểm đi/đến).
+2. TỰ SUY LUẬN NGỮ CẢNH: Khách thường nhắn tiếng Việt không dấu, viết tắt (VD: "dat le", "dat chuyen le", "dat xe"). Hãy suy luận đúng ý định nghiệp vụ.
+3. BẢNG GIÁ LÁI HỘ:
+   - Xe máy: 73.000 VNĐ (1km đầu) + 5.000 VNĐ/km tiếp theo.
+   - Ô tô: 120.000 VNĐ (1km đầu) + 7.000 VNĐ/km tiếp theo.
+4. Nếu thông tin hoàn toàn KHÔNG CÓ trong tài liệu, bạn CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau: "${persona.fallback}"
 
-2. TỰ ƯỚC TÍNH KHỎANG CÁCH & TÍNH GIÁ:
-   - Nếu khách hàng cung cấp điểm đón và điểm trả, hãy tự tra cứu/ước tính khoảng cách (theo tuyến đường đi thực tế trên Google Maps) giữa 2 địa điểm đó (đơn vị: km).
-   - Tra cứu BẢNG GIÁ DỊCH VỤ trong [TÀI LIỆU CÔNG TY] bên dưới (mức giá theo từng mốc km, phí dịch vụ xe máy/ô tô, thuế VAT nếu có).
-   - Áp dụng công thức tính tổng cước chuyến đi = (Cước khoảng cách + Phí dịch vụ) x Thuế/Chính sách áp dụng.
-   - Báo giá rõ ràng cho khách gồm:
-     + Ước tính khoảng cách (VD: khoảng 8 km).
-     + Chi tiết cước phí ước tính theo từng loại phương tiện (Ô tô / Xe máy).
-     + Lưu ý với khách đây là giá ước tính, giá chính xác nhất sẽ hiển thị trên app khi đặt chuyến.
+[TÀI LIỆU CÔNG TY & QUY ĐỊNH CHUNG]:
+${knowledgeText}
 
-3. QUY TẮC TRẢ LỜI KHÁC:
-   - Chỉ dùng thông tin trong [TÀI LIỆU CÔNG TY]. Không tự bịa đặt ưu đãi/bảng giá ngoài tài liệu.
-   - Nếu thông tin hoàn toàn KHÔNG CÓ trong tài liệu và không liên quan đến hỏi giá/đặt xe, CHỈ TRẢ LỜI DUY NHẤT nguyên văn câu sau: "${persona.fallback}"
-
-[TÀI LIỆU CÔNG TY]:
-${knowledgeText}`;
+[DANH MỤC TÀI LIỆU CẦN BÁO ĐỎ CHO QUẢN TRỊ VIÊN KHI KHÁCH NHẮN ĐẾN]:
+${alertDocsText}`;
 
   if (!config.aiApiKey) return { reply: "Chưa cấu hình API Key trên web quản trị!", needsAdmin: false };
 
   const recentHistory = conversationHistory.slice(-10);
-
-  // Lấy các tài liệu đã được BẬT CHUÔNG 🔔 (alertAdmin = true)
-  const alertDocs = activeDocs.filter(d => d.alertAdmin);
-
   let replyText = "";
 
   if (config.aiProvider === 'gemini') {
@@ -886,30 +971,43 @@ ${knowledgeText}`;
     replyText = data.choices?.[0]?.message?.content || persona.fallback;
   }
 
-  // 1. AI VẪN TRẢ LỜI KHÁCH BÌNH THƯỜNG (Dùng replyText thu được ở trên)
+  // -------------------------------------------------------------
+  // ĐỐI SOÁT THÔNG MINH: KIỂM TRA KHỚP TIÊU ĐỀ HOẶC NỘI DUNG TÀI LIỆU BẬT CHUÔNG
+  // -------------------------------------------------------------
+  const userMsgLower = userMessage.toLowerCase();
+  const replyLower = replyText.toLowerCase();
 
-  // 2. ĐỒNG THỜI KIỂM TRA BÁO ĐỎ:
-  // Nếu đụng tài liệu Bật Báo 🔔 OR AI trả lời câu Fallback ➔ Bật needsAdmin = true
+  // Hàm chuyển đổi tiếng Việt có dấu thành không dấu để so khớp linh hoạt
+  const removeTones = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+  const cleanUserMsg = removeTones(userMessage);
+
   const isAlertDocTriggered = alertDocs.some(d => {
-    const titleMatch = userMessage.toLowerCase().includes(d.title.toLowerCase()) || replyText.toLowerCase().includes(d.title.toLowerCase());
-    // const contentMatch = d.content.toLowerCase().split('\n').some(line => {
-    //   const cleanLine = line.replace(/^[-+*]\s*/, '').trim();
-    //   return cleanLine.length > 6 && userMessage.toLowerCase().includes(cleanLine.toLowerCase());
-    // });
-    // Check khớp từng dòng nội dung chi tiết trong tài liệu
+    const cleanTitle = removeTones(d.title);
+    const cleanContent = removeTones(d.content);
+
+    // Kiểm tra nếu tin nhắn của khách hoặc câu trả lời của AI khớp với tiêu đề hoặc nội dung chi tiết
+    const matchesTitle = cleanUserMsg.includes(cleanTitle) || cleanTitle.includes(cleanUserMsg) || replyLower.includes(d.title.toLowerCase());
+    
+    // Kiểm tra từng dòng trong nội dung chi tiết của tài liệu bật báo
     const contentLines = d.content.toLowerCase().split('\n');
-    const contentMatch = contentLines.some(line => {
-      const cleanLine = line.replace(/^[-+*]\s*/, '').trim();
-      return cleanLine.length > 5 && (userMsgLower.includes(cleanLine) || replyTextLower.includes(cleanLine));
+    const matchesContent = contentLines.some(line => {
+      const cleanLine = removeTones(line.replace(/^[-+*]\s*/, '').trim());
+      return cleanLine.length > 4 && (cleanUserMsg.includes(cleanLine) || cleanLine.includes(cleanUserMsg));
     });
-    return titleMatch || contentMatch;
+
+    return matchesTitle || matchesContent;
   });
 
+  // Kiểm tra khách gửi Số điện thoại
+  const phoneRegex = /(\+84|0[3|5|7|8|9])+([0-9]{8})\b/;
+  const hasPhoneNumber = phoneRegex.test(userMessage);
+
+  // Kiểm tra AI bí câu trả lời (dùng fallback)
   const isFallback = replyText.trim().startsWith(persona.fallback.trim()) || replyText.trim() === persona.fallback.trim();
 
-  const needsAdmin = isAlertDocTriggered || isFallback;
+  // Tổng hợp cờ báo đỏ cho Admin
+  const needsAdmin = isAlertDocTriggered || hasPhoneNumber || isFallback;
 
-  // Trả về cả câu trả lời của AI lẫn cờ báo đỏ
   return { reply: replyText, needsAdmin };
 }
 
