@@ -892,9 +892,15 @@ ${knowledgeText}`;
   // Nếu đụng tài liệu Bật Báo 🔔 OR AI trả lời câu Fallback ➔ Bật needsAdmin = true
   const isAlertDocTriggered = alertDocs.some(d => {
     const titleMatch = userMessage.toLowerCase().includes(d.title.toLowerCase()) || replyText.toLowerCase().includes(d.title.toLowerCase());
-    const contentMatch = d.content.toLowerCase().split('\n').some(line => {
+    // const contentMatch = d.content.toLowerCase().split('\n').some(line => {
+    //   const cleanLine = line.replace(/^[-+*]\s*/, '').trim();
+    //   return cleanLine.length > 6 && userMessage.toLowerCase().includes(cleanLine.toLowerCase());
+    // });
+    // Check khớp từng dòng nội dung chi tiết trong tài liệu
+    const contentLines = d.content.toLowerCase().split('\n');
+    const contentMatch = contentLines.some(line => {
       const cleanLine = line.replace(/^[-+*]\s*/, '').trim();
-      return cleanLine.length > 6 && userMessage.toLowerCase().includes(cleanLine.toLowerCase());
+      return cleanLine.length > 5 && (userMsgLower.includes(cleanLine) || replyTextLower.includes(cleanLine));
     });
     return titleMatch || contentMatch;
   });
